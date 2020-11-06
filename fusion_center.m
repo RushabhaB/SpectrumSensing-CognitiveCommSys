@@ -54,7 +54,7 @@ xb_det = inv(diag(H_LS))*Y;
 m_det = bpsk_demod(xb_det);
 
 %BER
-[nErr(floor(i/1)),ratio(floor(i/1))] = biterr(m,m_det);
+[nErr(floor(i/1)),ratio(floor(i/1))] = biterr(m,m_det); %Generating the number of errors array and ratio array
 end
 
 plot(snr,nErr)
