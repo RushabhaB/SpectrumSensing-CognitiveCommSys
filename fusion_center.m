@@ -31,8 +31,9 @@ E_s =100;
 %E_s = (10^(i/10))*N0; % Signal energy
 snr = 10*log10(E_s/N0); %SNR of the signal
 nSamples = 3 ; % Number of samples across which we assume the H_coeff to be constant
-m_p = ones([nSU 1]);
-CW = zeros([nSU,nCodeWords]);
+m_p = ones([nSU 1]); % Pilot bits
+CW = zeros([nSU,nCodeWords]); % Actual Codewords received
+CW_det = zeros([nSU,nCodeWords]);% Detected codewords
 % Rayleigh Fading Coefficients
 H=(randn([nSU nCodeWords])+1j*randn([nSU nCodeWords]))/sqrt(2); % Channel Matrix
 
@@ -40,6 +41,7 @@ H=(randn([nSU nCodeWords])+1j*randn([nSU nCodeWords]))/sqrt(2); % Channel Matrix
 W=sqrt(N0)*(randn([nSU nCodeWords])+randn([nSU nCodeWords])*1j)/sqrt(2);% Noise vector of CSCG noise for SU
 
 for i = 1: nSamples+1 :nCodeWords
+CW(:,i) = m_p;
 CW(:,i) = m_p;
 x_p = sqrt(E_s)*exp(-1i*pi*2*(m_p)/M); % BPSK Pilot symbol for all the SU
 
@@ -69,7 +71,8 @@ m_det = bpsk_demod(xb_det);
 %number of errors array and ratio array ( include in snr for loop)
 [nErr(j),ratio(j)] = biterr(m,m_det); %Generating the number of errors array and ratio array (without for loop)
 
-CW(:,j)= m_det;
+CW(:,j) = m;
+CW_det(:,j)= m_det;
 end
 end
 
