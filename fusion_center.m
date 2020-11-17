@@ -51,6 +51,9 @@ Y_p = X_p*H(:,i) + W(:,i); % Output symbols at the Fusion Centre (FC)
 
 %Channel  Estimation
 H_LS_p = inv(X_p*X_p')*X_p'*Y_p; %MISO Least Square detection using pilots
+k = (1./(E_s + N0)).*x_p; %E[h^2] is 2 sigma^2 i.e 2*1/2 = 1. Also ||x||^2 is E_s
+H_mmse_p = conj(k).*Y_p; %Standard formula
+%dif = H_mmse_p - H_LS_p %Just to check difference... max difference is 0.01 per dimension
 
 for j = i+1:i+nSamples
 
@@ -62,22 +65,31 @@ Y_b = X_b*H(:,j) + W(:,j); % Output symbols at the Fusion Centre (FC)
 
 % Detection using estimated channel 
 
-% Detecting the received bits from the ZF equalisation of received vector
+% Detecting the received bits from the ZF equalisation (LS) of received vector
 xb_det = inv(diag(H_LS_p))*Y_b;
 m_det = bpsk_demod(xb_det);
+
+% Detecting the received bits from the ZF equalisation (MMSE) of received vector
+xb_det_mmse = inv(diag(H_mmse_p))*Y_b;
+m_det_mmse = bpsk_demod(xb_det_mmse);
 
 %BER
 %[nErr(floor(i/1)),ratio(floor(i/1))] = biterr(m,m_det); %Generating the
 %number of errors array and ratio array ( include in snr for loop)
-[nErr(j),ratio(j)] = biterr(m,m_det); %Generating the number of errors array and ratio array (without for loop)
+[nErr(j),ratio(j)] = biterr(m,m_det); %Generating the number of errors array and ratio array for ls (without for loop)
+[nErr_mmse(j),ratio_mmse(j)] = biterr(m,m_det_mmse); %Generating the number of errors array and ratio array for mmse (without for loop)
 
 CW(:,j) = m;
 CW_det(:,j)= m_det;
+CW_det_mmse(:,j)= m_det_mmse;
 end
 end
 
 [p_md,p_fa] = md_fa(CW,CW_det,nSamples,nCodeWords);
+[p_md_mmse,p_fa_mmse] = md_fa(CW,CW_det_mmse,nSamples,nCodeWords);
 
 p_md
 p_fa
+p_md_mmse
+p_fa_mmse
 
