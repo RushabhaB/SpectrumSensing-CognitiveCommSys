@@ -43,6 +43,7 @@ W=sqrt(N0)*(randn([nSU nCodeWords])+randn([nSU nCodeWords])*1j)/sqrt(2);% Noise 
 for i = 1: nSamples+1 :nCodeWords
 CW(:,i) = m_p;
 CW_det(:,i) = m_p;
+CW_det_mmse(:,i) = m_p;
 x_p = sqrt(E_s)*exp(-1i*pi*2*(m_p)/M); % BPSK Pilot symbol for all the SU
 
 X_p = diag(x_p); % Generating the symbol matrix with the diagonal elements as the data symbols
