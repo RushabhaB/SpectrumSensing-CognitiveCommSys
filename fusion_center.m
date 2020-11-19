@@ -30,10 +30,19 @@ nCodeWords = 500;
 E_s =100;
 %E_s = (10^(i/10))*N0; % Signal energy
 snr = 10*log10(E_s/N0); %SNR of the signal
-nSamples = 3 ; % Number of samples across which we assume the H_coeff to be constant
+nSamples = 4 ; % Number of samples across which we assume the H_coeff to be constant
 m_p = ones([nSU 1]); % Pilot bits
-CW = zeros([nSU,nCodeWords]); % Actual Codewords received
-CW_det = zeros([nSU,nCodeWords]);% Detected codewords
+%CW = zeros([nSU,nCodeWords]); % Actual Codewords received
+%CW_det = zeros([nSU,nCodeWords]);% Detected codewords
+
+[x,x_det] = stage1_ED (nSU,nCodeWords,nSamples,E_s);
+CW = x;
+CW_detSU = x_det';
+for i = 1:nSamples+1:nCodeWords
+    CW(i) = m_p(1);%The pilots are inserted here as well, though of no consequence it just makes it easier to compare and avoids confusion
+    CW_detSU(:,i) = m_p;  %Inserting the pilot vectors into codeword by forcing  the every nSample'th bits to be the pilot
+end
+%for i 
 % Rayleigh Fading Coefficients
 H=(randn([nSU nCodeWords])+1j*randn([nSU nCodeWords]))/sqrt(2); % Channel Matrix
 
@@ -41,9 +50,6 @@ H=(randn([nSU nCodeWords])+1j*randn([nSU nCodeWords]))/sqrt(2); % Channel Matrix
 W=sqrt(N0)*(randn([nSU nCodeWords])+randn([nSU nCodeWords])*1j)/sqrt(2);% Noise vector of CSCG noise for SU
 
 for i = 1: nSamples+1 :nCodeWords
-CW(:,i) = m_p;
-CW_det(:,i) = m_p;
-CW_det_mmse(:,i) = m_p;
 x_p = sqrt(E_s)*exp(-1i*pi*2*(m_p)/M); % BPSK Pilot symbol for all the SU
 
 X_p = diag(x_p); % Generating the symbol matrix with the diagonal elements as the data symbols
@@ -59,7 +65,7 @@ H_mmse_p = conj(k).*Y_p; %Standard formula
 for j = i+1:i+nSamples
 
 % Data symbols
-m = randi([0 1],[1,nSU])'; % Generating random message symbols
+m = CW_detSU(:,j); % Transmitting the received PU signal by the SU to the FC
 xb = sqrt(E_s)*exp(-1i*pi*2*(m)/M); % BPSK Data symbol for all the SU
 X_b = diag(xb); % Generating the symbol matrix with the diagonal elements as the data symbols
 Y_b = X_b*H(:,j) + W(:,j); % Output symbols at the Fusion Centre (FC)
@@ -80,14 +86,13 @@ m_det_mmse = bpsk_demod(xb_det_mmse);
 [nErr(j),ratio(j)] = biterr(m,m_det); %Generating the number of errors array and ratio array for ls (without for loop)
 [nErr_mmse(j),ratio_mmse(j)] = biterr(m,m_det_mmse); %Generating the number of errors array and ratio array for mmse (without for loop)
 
-CW(:,j) = m;
-CW_det(:,j)= m_det;
-CW_det_mmse(:,j)= m_det_mmse;
+CW_detFC(:,j)= m_det;
+CW_detFC_mmse(:,j)= m_det_mmse;
 end
 end
 
-[p_md,p_fa] = md_fa(CW,CW_det,nSamples,nCodeWords);
-[p_md_mmse,p_fa_mmse] = md_fa(CW,CW_det_mmse,nSamples,nCodeWords);
+[p_md,p_fa] = md_fa(CW,CW_detFC,nSamples,nCodeWords);
+[p_md_mmse,p_fa_mmse] = md_fa(CW,CW_detFC_mmse,nSamples,nCodeWords);
 
 p_md
 p_fa

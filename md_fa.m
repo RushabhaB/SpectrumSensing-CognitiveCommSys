@@ -2,11 +2,12 @@
 
 function [p_md,p_fa] = md_fa(CW,CW_det,nSamples,nCodeWords)
 
-a = sum(CW);
+%a = sum(CW);
 b = sum(CW_det);
 
-a(a<2) = 0; % Actual PU status - Idle
-a(a>0) = 1; % Actual PU status - Active
+%a(a<2) = 0; % Actual PU status - Idle
+%a(a>0) = 1; % Actual PU status - Active
+a=CW;
 b(b<2) = 0; % Estimated PU status - Idle
 b(b>0) = 1; % Estimated PU status - Active
 
