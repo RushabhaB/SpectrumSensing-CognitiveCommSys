@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 % Cooperative Cognitive Radio Communication
 % MATLAB code for assignment in AET G641 @ BITS Pilani
 % Instructor: B. Sainath
