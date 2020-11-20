@@ -38,6 +38,8 @@ m_p = ones([nSU 1]); % Pilot bits
 [x,x_det] = stage1_ED (nSU,nCodeWords,nSamples,E_s);
 CW = x;
 CW_detSU = x_det';
+
+pilot_loc = 1:nSamples+1:nCodeWords ;
 for i = 1:nSamples+1:nCodeWords
     CW(i) = m_p(1);%The pilots are inserted here as well, though of no consequence it just makes it easier to compare and avoids confusion
     CW_detSU(:,i) = m_p;  %Inserting the pilot vectors into codeword by forcing  the every nSample'th bits to be the pilot
@@ -57,11 +59,29 @@ X_p = diag(x_p); % Generating the symbol matrix with the diagonal elements as th
 Y_p = X_p*H(:,i) + W(:,i); % Output symbols at the Fusion Centre (FC)
 
 %Channel  Estimation
-H_LS_p = inv(X_p*X_p')*X_p'*Y_p; %MISO Least Square detection using pilots
+H_LS_p(:,ceil(i/(nSamples+1))) = inv(X_p*X_p')*X_p'*Y_p; %MISO Least Square detection using pilots
 k = (1./(E_s + N0)).*x_p; %E[h^2] is 2 sigma^2 i.e 2*1/2 = 1. Also ||x||^2 is E_s
-H_mmse_p = conj(k).*Y_p; %Standard formula
+H_mmse_p(:,ceil(i/(nSamples+1))) = conj(k).*Y_p; %Standard formula
 %dif = H_mmse_p - H_LS_p %Just to check difference... max difference is 0.01 per dimension
+end
 
+for i = 1:nSU
+if pilot_loc(1)>1
+  slope = (H_LS_p(i,2)-H_LS_p(i,1))/(pilot_loc(2)-pilot_loc(1));
+  x = [H_LS_p(i,1)-slope*(pilot_loc(1)-1)  H_LS_p(i,:)]; y = [1 pilot_loc];
+  z=  [H_mmse_p(i,1)-slope*(pilot_loc(1)-1)  H_mmse_p(i,:)];
+end
+if pilot_loc(end)< nCodeWords
+  slope = (H_LS_p(i,end)-H_LS_p(i,end-1))/(pilot_loc(end)-pilot_loc(end-1));  
+  x = [H_LS_p(i,:)  H_LS_p(i,end)+slope*(nCodeWords-pilot_loc(end))]; y = [pilot_loc nCodeWords];
+  z=[H_mmse_p(i,:)  H_mmse_p(i,end)+slope*(nCodeWords-pilot_loc(end))];
+end
+
+ H_LS_ipl(i,:) = interp1(y(1:101),x,[1:nCodeWords],'spline');
+ H_mmse_ipl(i,:) = interp1(y(1:101),z,[1:nCodeWords],'spline');
+end
+
+for i = 1:nSamples+1:nCodeWords
 for j = i+1:i+nSamples
 
 % Data symbols
@@ -73,11 +93,11 @@ Y_b = X_b*H(:,j) + W(:,j); % Output symbols at the Fusion Centre (FC)
 % Detection using estimated channel 
 
 % Detecting the received bits from the ZF equalisation (LS) of received vector
-xb_det = inv(diag(H_LS_p))*Y_b;
+xb_det = inv(diag(H_LS_ipl(:,j)))*Y_b;
 m_det = bpsk_demod(xb_det);
 
 % Detecting the received bits from the ZF equalisation (MMSE) of received vector
-xb_det_mmse = inv(diag(H_mmse_p))*Y_b;
+xb_det_mmse = inv(diag(H_mmse_ipl(:,j)))*Y_b;
 m_det_mmse = bpsk_demod(xb_det_mmse);
 
 %BER
