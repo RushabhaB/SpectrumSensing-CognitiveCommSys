@@ -40,19 +40,28 @@ m_p = ones([nSU 1]); % Pilot bits
 E_s = 100;
 
 fa =0.005:0.005:0.05;
-CW_p = MAP_est((qfuncinv(fa/2).^2)*(N0/2),N0,E_s);
+th = linspace(10^-4,6,length(fa));
+CW_p = MAP_est(th,N0,E_s);
 p_md_arr = [];
 p_fa_arr = [];
 p_md_mmse_arr = [];
 p_fa_mmse_arr = [];
-p_md_MAP_arr = [];
-p_fa_MAP_arr = [];
+
+% MAP arrays
+p_md_MAP_ideal_arr = [];
+p_fa_MAP_ideal_arr = [];
+p_md_MAP_LS_arr = [];
+p_fa_MAP_LS_arr = [];
+p_md_MAP_mmse_arr = [];
+p_fa_MAP_mmse_arr = [];
 
 for k=1:length(fa)
 fa(k)
 [x,x_det] = stage1_ED (nSU,nCodeWords,nSamples,E_s,fa(k));
 CW = x;
-CW_MAP = ones(size(CW));
+CW_ideal = ones(size(CW));
+CW_LS = ones(size(CW));
+CW_mmse = ones(size(CW));
 CW_detSU = x_det';
 
 pilot_loc = 1:nSamples+1:nCodeWords ;
@@ -124,16 +133,40 @@ m_det_mmse = bpsk_demod(xb_det_mmse);
 for p = 1:2^nSU
     Ka = sum(abs(Y_b-X_b*H(:,j)).^2) - N0 *log(CW_p(k,1,p));
     Ki = sum(abs(Y_b-X_b*H(:,j)).^2) - N0 *log(CW_p(k,2,p));
+    
+    Ka_LS = sum(abs(Y_b-X_b*H_LS_ipl(:,j)).^2) - N0 *log(CW_p(k,1,p));
+    Ki_LS = sum(abs(Y_b-X_b*H_LS_ipl(:,j)).^2) - N0 *log(CW_p(k,2,p));
+    
+    Ka_mmse = sum(abs(Y_b-X_b*H_mmse_ipl(:,j)).^2) - N0 *log(CW_p(k,1,p));
+    Ki_mmse = sum(abs(Y_b-X_b*H_mmse_ipl(:,j)).^2) - N0 *log(CW_p(k,2,p));
 end
 Ka_min = min(Ka);
 Ki_min = min(Ki);
 
+Ka_min_LS = min(Ka_LS);
+Ki_min_LS = min(Ki_LS);
+
+Ka_min_mmse = min(Ka_LS);
+Ki_min_mmse = min(Ki_LS);
+
+
 if (Ka_min < Ki_min)
-    CW_MAP(j) = 1;
+    CW_ideal(j) = 1;
 else
-    CW_MAP(j) = 0;
+    CW_ideal(j) = 0;
+end
+    
+if (Ka_min_LS < Ki_min_LS)
+    CW_LS(j) = 1;
+else
+    CW_LS(j) = 0;
 end
 
+if (Ka_min_mmse < Ki_min_mmse)
+    CW_mmse(j) = 1;
+else
+    CW_mmse(j) = 0;
+end
 %BER
 %[nErr(floor(i/1)),ratio(floor(i/1))] = biterr(m,m_det); %Generating the
 %number of errors array and ratio array ( include in snr for loop)
@@ -149,16 +182,11 @@ end
 [p_md_mmse,p_fa_mmse] = md_fa(CW,CW_detFC_mmse,nSamples,nCodeWords);
 
 %MAP estimation of Pmd and Pfa
-count = CW-CW_MAP ;
 
-md_count = sum(count==1); % Actual is active (1) but estimated is idle (0)
-fa_count = sum(count==-1); % Actual is idle (0) but estimated is active (1)
+[p_md_MAP_ideal,p_fa_MAP_ideal] = md_fa_MAP(CW,CW_ideal,nSamples,nCodeWords);
+[p_md_MAP_LS,p_fa_MAP_LS] = md_fa_MAP(CW,CW_LS,nSamples,nCodeWords);
 
-pilots_len = length(1: nSamples+1 :nCodeWords); % Number of pilot codewords
-actual_data_len = nCodeWords - pilots_len; % Number of actual data codewords
-
-p_md_MAP = md_count/(actual_data_len);
-p_fa_MAP = fa_count/(actual_data_len);
+[p_md_MAP_mmse,p_fa_MAP_mmse] = md_fa_MAP(CW,CW_mmse,nSamples,nCodeWords);
 
 % end MAP estimation
 
@@ -166,21 +194,53 @@ p_md_arr = [p_md_arr p_md];
 p_fa_arr = [p_fa_arr p_fa];
 p_md_mmse_arr = [p_md_mmse_arr p_md_mmse];
 p_fa_mmse_arr = [p_fa_mmse_arr p_fa_mmse];
-p_md_MAP_arr = [p_md_MAP_arr p_md_MAP];
-p_fa_MAP_arr = [p_fa_MAP_arr p_fa_MAP];
+
+% MAP figures
+p_md_MAP_ideal_arr = [p_md_MAP_ideal_arr p_md_MAP_ideal];
+p_fa_MAP_ideal_arr = [p_fa_MAP_ideal_arr p_fa_MAP_ideal];
+
+p_md_MAP_LS_arr = [p_md_MAP_LS_arr p_md_MAP_LS];
+p_fa_MAP_LS_arr = [p_fa_MAP_LS_arr p_fa_MAP_LS];
+
+p_md_MAP_mmse_arr = [p_md_MAP_mmse_arr p_md_MAP_mmse];
+p_fa_MAP_mmse_arr = [p_fa_MAP_mmse_arr p_fa_MAP_mmse];
 
 end
 
 
- figure(2)
+ figure(1)
  grid on
  hold all
  plot(fa,(p_md_arr),'r-o','LineWidth',2);
  plot(fa,(p_fa_arr),'k-o','LineWidth',2);
  plot(fa,(p_md_mmse_arr),'k--','LineWidth',2);
  plot(fa,(p_fa_mmse_arr),'r--','LineWidth',2);
- plot(fa,(p_md_MAP_arr),'b-.','LineWidth',2);
- plot(fa,(p_fa_MAP_arr),'g:','LineWidth',2);
  xlabel('Local FA probablity','FontSize',12,'FontWeight','bold','Color','k','Fontname', 'Arial','Interpreter', 'latex')
  ylabel('Probablity','FontSize',12,'FontWeight','bold','Color','k','Fontname', 'Arial','Interpreter', 'latex')
- legend('Misdetection (LS)', 'False Alarm (LS)','Misdetection (MMSE)', 'False Alarm (MMSE)','Misdetection (MAP)', 'False Alarm (MAP)','Location','southeastoutside','FontSize',12,'Fontname','Arial','Interpreter','latex');
+ legend('Misdetection (LS)', 'False Alarm (LS)','Misdetection (MMSE)', 'False Alarm (MMSE)','Location','southeastoutside','FontSize',12,'Fontname','Arial','Interpreter','latex');
+
+ figure(2)
+ grid on
+ hold on
+ loglog(th,(p_md_MAP_LS_arr),'r-o','LineWidth',2);
+ hold on
+ loglog(th,(p_md_MAP_mmse_arr),'k--','LineWidth',2);
+ hold on
+ loglog(th,(p_md_MAP_ideal_arr),'g-.','LineWidth',2);
+ 
+ xlabel('Threshold(W)','FontSize',12,'FontWeight','bold','Color','k','Fontname', 'Arial','Interpreter', 'latex')
+ ylabel('Probablity','FontSize',12,'FontWeight','bold','Color','k','Fontname', 'Arial','Interpreter', 'latex')
+ legend('Misdetection (LS)','Misdetection (MMSE)','Misdetection (Ideal)','Location','southeastoutside','FontSize',12,'Fontname','Arial','Interpreter','latex');
+
+ figure(3)
+ grid on
+ hold all
+ 
+ semilogx(th,(p_fa_MAP_LS_arr),'k-o','LineWidth',2);
+ 
+ semilogx(th,(p_fa_MAP_mmse_arr),'r--','LineWidth',2);
+ 
+ semilogx(th,(p_fa_MAP_ideal_arr),'b:','LineWidth',2);
+ xlabel('Threshold(W)','FontSize',12,'FontWeight','bold','Color','k','Fontname', 'Arial','Interpreter', 'latex')
+ ylabel('Probablity','FontSize',12,'FontWeight','bold','Color','k','Fontname', 'Arial','Interpreter', 'latex')
+ legend('False Alarm (LS)','False Alarm (MMSE)','False Alarm (Ideal)','Location','southeastoutside','FontSize',12,'Fontname','Arial','Interpreter','latex');
