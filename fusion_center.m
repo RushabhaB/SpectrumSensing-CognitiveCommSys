@@ -18,7 +18,7 @@ clear all;
 % BPSK modulation
 bpsk_demod = comm.BPSKDemodulator; %Creating the bpsk demodulator object
 
-nSU = 3; % Number of Secondary Users
+nSU = 3; % Number of Secondary Users (Keep this as 3 to get meaning ful MAP results)
 M = 2; %BPSK modulation
 %snr = 1:1:25; % Use this array to generate ber vs snr plot
 
@@ -40,17 +40,19 @@ m_p = ones([nSU 1]); % Pilot bits
 E_s = 100;
 
 fa =0.005:0.005:0.05;
-
+CW_p = MAP_est((qfuncinv(fa/2).^2)*(N0/2),N0,E_s);
 p_md_arr = [];
 p_fa_arr = [];
 p_md_mmse_arr = [];
 p_fa_mmse_arr = [];
+p_md_MAP_arr = [];
+p_fa_MAP_arr = [];
 
-
-for k=fa
-k
-[x,x_det] = stage1_ED (nSU,nCodeWords,nSamples,E_s,k);
+for k=1:length(fa)
+fa(k)
+[x,x_det] = stage1_ED (nSU,nCodeWords,nSamples,E_s,fa(k));
 CW = x;
+CW_MAP = ones(size(CW));
 CW_detSU = x_det';
 
 pilot_loc = 1:nSamples+1:nCodeWords ;
@@ -79,22 +81,25 @@ H_mmse_p(:,ceil(i/(nSamples+1))) = conj(u).*Y_p; %Standard formula
 %dif = H_mmse_p - H_LS_p %Just to check difference... max difference is 0.01 per dimension
 end
 
-for i = 1:nSU
+% Begin Interpolation
+for n = 1:nSU
 if pilot_loc(1)>1
-  slope = (H_LS_p(i,2)-H_LS_p(i,1))/(pilot_loc(2)-pilot_loc(1));
-  x = [H_LS_p(i,1)-slope*(pilot_loc(1)-1)  H_LS_p(i,:)]; y = [1 pilot_loc];
-  z=  [H_mmse_p(i,1)-slope*(pilot_loc(1)-1)  H_mmse_p(i,:)];
+  slope = (H_LS_p(n,2)-H_LS_p(n,1))/(pilot_loc(2)-pilot_loc(1));
+  x = [H_LS_p(n,1)-slope*(pilot_loc(1)-1)  H_LS_p(n,:)]; y = [1 pilot_loc];
+  z=  [H_mmse_p(n,1)-slope*(pilot_loc(1)-1)  H_mmse_p(n,:)];
 end
 if pilot_loc(end)< nCodeWords
-  slope = (H_LS_p(i,end)-H_LS_p(i,end-1))/(pilot_loc(end)-pilot_loc(end-1));  
-  x = [H_LS_p(i,:)  H_LS_p(i,end)+slope*(nCodeWords-pilot_loc(end))]; y = [pilot_loc nCodeWords];
-  z=[H_mmse_p(i,:)  H_mmse_p(i,end)+slope*(nCodeWords-pilot_loc(end))];
+  slope = (H_LS_p(n,end)-H_LS_p(n,end-1))/(pilot_loc(end)-pilot_loc(end-1));  
+  x = [H_LS_p(n,:)  H_LS_p(n,end)+slope*(nCodeWords-pilot_loc(end))]; y = [pilot_loc nCodeWords];
+  z=[H_mmse_p(n,:)  H_mmse_p(n,end)+slope*(nCodeWords-pilot_loc(end))];
 end
 
- H_LS_ipl(i,:) = interp1(y(1:101),x,[1:nCodeWords],'spline');
- H_mmse_ipl(i,:) = interp1(y(1:101),z,[1:nCodeWords],'spline');
+ H_LS_ipl(n,:) = interp1(y(1:101),x,[1:nCodeWords],'spline');
+ H_mmse_ipl(n,:) = interp1(y(1:101),z,[1:nCodeWords],'spline');
 end
+% End interpolation block
 
+% Begin using the interpolate values to fetermine the data 
 for i = 1:nSamples+1:nCodeWords
 for j = i+1:i+nSamples
 
@@ -114,6 +119,21 @@ m_det = bpsk_demod(xb_det);
 xb_det_mmse = inv(diag(H_mmse_ipl(:,j)))*Y_b;
 m_det_mmse = bpsk_demod(xb_det_mmse);
 
+%Begin the MAP estimate 
+
+for p = 1:2^nSU
+    Ka = sum(abs(Y_b-X_b*H(:,j)).^2) - N0 *log(CW_p(k,1,p));
+    Ki = sum(abs(Y_b-X_b*H(:,j)).^2) - N0 *log(CW_p(k,2,p));
+end
+Ka_min = min(Ka);
+Ki_min = min(Ki);
+
+if (Ka_min < Ki_min)
+    CW_MAP(j) = 1;
+else
+    CW_MAP(j) = 0;
+end
+
 %BER
 %[nErr(floor(i/1)),ratio(floor(i/1))] = biterr(m,m_det); %Generating the
 %number of errors array and ratio array ( include in snr for loop)
@@ -128,10 +148,27 @@ end
 [p_md,p_fa] = md_fa(CW,CW_detFC,nSamples,nCodeWords);
 [p_md_mmse,p_fa_mmse] = md_fa(CW,CW_detFC_mmse,nSamples,nCodeWords);
 
+%MAP estimation of Pmd and Pfa
+count = CW-CW_MAP ;
+
+md_count = sum(count==1); % Actual is active (1) but estimated is idle (0)
+fa_count = sum(count==-1); % Actual is idle (0) but estimated is active (1)
+
+pilots_len = length(1: nSamples+1 :nCodeWords); % Number of pilot codewords
+actual_data_len = nCodeWords - pilots_len; % Number of actual data codewords
+
+p_md_MAP = md_count/(actual_data_len);
+p_fa_MAP = fa_count/(actual_data_len);
+
+% end MAP estimation
+
 p_md_arr = [p_md_arr p_md];
 p_fa_arr = [p_fa_arr p_fa];
 p_md_mmse_arr = [p_md_mmse_arr p_md_mmse];
 p_fa_mmse_arr = [p_fa_mmse_arr p_fa_mmse];
+p_md_MAP_arr = [p_md_MAP_arr p_md_MAP];
+p_fa_MAP_arr = [p_fa_MAP_arr p_fa_MAP];
+
 end
 
 
@@ -142,6 +179,8 @@ end
  plot(fa,(p_fa_arr),'k-o','LineWidth',2);
  plot(fa,(p_md_mmse_arr),'k--','LineWidth',2);
  plot(fa,(p_fa_mmse_arr),'r--','LineWidth',2);
+ plot(fa,(p_md_MAP_arr),'b-.','LineWidth',2);
+ plot(fa,(p_fa_MAP_arr),'g:','LineWidth',2);
  xlabel('Local FA probablity','FontSize',12,'FontWeight','bold','Color','k','Fontname', 'Arial','Interpreter', 'latex')
  ylabel('Probablity','FontSize',12,'FontWeight','bold','Color','k','Fontname', 'Arial','Interpreter', 'latex')
- legend('Misdetection (LS)', 'False Alarm (LS)','Misdetection (MMSE)', 'False Alarm (MMSE)','Location','best','FontSize',12,'Fontname','Arial','Interpreter','latex');
+ legend('Misdetection (LS)', 'False Alarm (LS)','Misdetection (MMSE)', 'False Alarm (MMSE)','Misdetection (MAP)', 'False Alarm (MAP)','Location','southeastoutside','FontSize',12,'Fontname','Arial','Interpreter','latex');
