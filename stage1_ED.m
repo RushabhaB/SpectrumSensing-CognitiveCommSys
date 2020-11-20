@@ -1,4 +1,4 @@
-function [CW_State, CW] = stage1_ED (nSU,nCodeword,nSamples,E_s)
+function [CW_State, CW] = stage1_ED (nSU,nCodeword,nSamples,E_s,fa)
 CW=[];
 
 CW_State = randi([0,1], [1,nCodeword]);
@@ -6,7 +6,7 @@ CW_State = randi([0,1], [1,nCodeword]);
 L = nSamples; % Number of sensing samples
 iter =10^5; % Number of iterations 
 %fa =0.01:0.03:1; % Probability of False Alarm
-fa = 0.05;
+%fa = 0.05;
 E_p_l = E_s; % SNR in linear scale
 for t = 1:length(fa) % Calculating threshold for each value of false alarm
  energy_fin = []; 
