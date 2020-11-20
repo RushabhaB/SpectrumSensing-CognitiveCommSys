@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 % Cooperative Cognitive Radio Communication
 % MATLAB code for assignment in AET G641 @ BITS Pilani
 % Instructor: B. Sainath
@@ -27,15 +28,29 @@ M = 2; %BPSK modulation
 %System Config
 N0 = 1;  % Noise power
 nCodeWords = 500;
-E_s =100;
+%E_s =100;
 %E_s = (10^(i/10))*N0; % Signal energy
-snr = 10*log10(E_s/N0); %SNR of the signal
+%snr = 10*log10(E_s/N0); %SNR of the signal
 nSamples = 4 ; % Number of samples across which we assume the H_coeff to be constant
 m_p = ones([nSU 1]); % Pilot bits
 %CW = zeros([nSU,nCodeWords]); % Actual Codewords received
 %CW_det = zeros([nSU,nCodeWords]);% Detected codewords
 
-[x,x_det] = stage1_ED (nSU,nCodeWords,nSamples,E_s);
+%power_noise_ratio_db= 0:2:50;
+%power_noise_ratio = 10.^(power_noise_ratio_db/10);
+E_s = 100;
+
+fa =0.005:0.005:0.05;
+
+p_md_arr = [];
+p_fa_arr = [];
+p_md_mmse_arr = [];
+p_fa_mmse_arr = [];
+
+
+for k=fa
+k
+[x,x_det] = stage1_ED (nSU,nCodeWords,nSamples,E_s,k);
 CW = x;
 CW_detSU = x_det';
 
@@ -52,7 +67,7 @@ H=(randn([nSU nCodeWords])+1j*randn([nSU nCodeWords]))/sqrt(2); % Channel Matrix
 W=sqrt(N0)*(randn([nSU nCodeWords])+randn([nSU nCodeWords])*1j)/sqrt(2);% Noise vector of CSCG noise for SU
 
 for i = 1: nSamples+1 :nCodeWords
-x_p = sqrt(E_s)*exp(-1i*pi*2*(m_p)/M); % BPSK Pilot symbol for all the SU
+x_p = sqrt(E_s).*exp(-1i*pi*2*(m_p)/M); % BPSK Pilot symbol for all the SU
 
 X_p = diag(x_p); % Generating the symbol matrix with the diagonal elements as the data symbols
 
@@ -60,8 +75,8 @@ Y_p = X_p*H(:,i) + W(:,i); % Output symbols at the Fusion Centre (FC)
 
 %Channel  Estimation
 H_LS_p(:,ceil(i/(nSamples+1))) = inv(X_p*X_p')*X_p'*Y_p; %MISO Least Square detection using pilots
-k = (1./(E_s + N0)).*x_p; %E[h^2] is 2 sigma^2 i.e 2*1/2 = 1. Also ||x||^2 is E_s
-H_mmse_p(:,ceil(i/(nSamples+1))) = conj(k).*Y_p; %Standard formula
+u = (1./(E_s + N0)).*x_p; %E[h^2] is 2 sigma^2 i.e 2*1/2 = 1. Also ||x||^2 is E_s
+H_mmse_p(:,ceil(i/(nSamples+1))) = conj(u).*Y_p; %Standard formula
 %dif = H_mmse_p - H_LS_p %Just to check difference... max difference is 0.01 per dimension
 end
 
@@ -86,7 +101,7 @@ for j = i+1:i+nSamples
 
 % Data symbols
 m = CW_detSU(:,j); % Transmitting the received PU signal by the SU to the FC
-xb = sqrt(E_s)*exp(-1i*pi*2*(m)/M); % BPSK Data symbol for all the SU
+xb = sqrt(E_s).*exp(-1i*pi*2*(m)/M); % BPSK Data symbol for all the SU
 X_b = diag(xb); % Generating the symbol matrix with the diagonal elements as the data symbols
 Y_b = X_b*H(:,j) + W(:,j); % Output symbols at the Fusion Centre (FC)
 
@@ -114,8 +129,20 @@ end
 [p_md,p_fa] = md_fa(CW,CW_detFC,nSamples,nCodeWords);
 [p_md_mmse,p_fa_mmse] = md_fa(CW,CW_detFC_mmse,nSamples,nCodeWords);
 
-p_md
-p_fa
-p_md_mmse
-p_fa_mmse
+p_md_arr = [p_md_arr p_md];
+p_fa_arr = [p_fa_arr p_fa];
+p_md_mmse_arr = [p_md_mmse_arr p_md_mmse];
+p_fa_mmse_arr = [p_fa_mmse_arr p_fa_mmse];
+end
 
+
+ figure(2)
+ grid on
+ hold all
+ plot(fa,(p_md_arr),'r-o','LineWidth',2);
+ plot(fa,(p_fa_arr),'k-o','LineWidth',2);
+ plot(fa,(p_md_mmse_arr),'k--','LineWidth',2);
+ plot(fa,(p_fa_mmse_arr),'r--','LineWidth',2);
+ xlabel('Local FA probablity','FontSize',12,'FontWeight','bold','Color','k','Fontname', 'Arial','Interpreter', 'latex')
+ ylabel('Probablity','FontSize',12,'FontWeight','bold','Color','k','Fontname', 'Arial','Interpreter', 'latex')
+ legend('Misdetection (LS)', 'False Alarm (LS)','Misdetection (MMSE)', 'False Alarm (MMSE)','Location','best','FontSize',12,'Fontname','Arial','Interpreter','latex');
