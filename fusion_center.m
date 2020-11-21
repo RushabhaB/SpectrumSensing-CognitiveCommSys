@@ -25,7 +25,7 @@ M = 2; %BPSK modulation
 %for i = 1:1:25 %dB
 
 %System Config
-N0 = 1;  % Noise power
+N0 = 10;  % Noise power
 nCodeWords = 500;
 %E_s =100;
 %E_s = (10^(i/10))*N0; % Signal energy
@@ -59,7 +59,8 @@ p_md_MAP_LS_arr = [];
 p_fa_MAP_LS_arr = [];
 p_md_MAP_mmse_arr = [];
 p_fa_MAP_mmse_arr = [];
-
+p_md_ideal_arr=[];
+p_fa_ideal_arr =[];
 for k=1:length(fa)
 [x,x_det] = stage1_ED (nSU,nCodeWords,nSamples,E_s,fa(k));
 CW = x;
@@ -125,6 +126,9 @@ Y_b = X_b*H(:,ceil(i/(nSamples+1))) + W(:,j); % Output symbols at the Fusion Cen
 % Detection using estimated channel 
 
 % Detecting the received bits from the ZF equalisation (LS) of received vector
+xb_det_ideal = inv(diag(H(:,ceil(i/(nSamples+1)))))*Y_b;
+m_det_ideal =  bpsk_demod(xb_det_ideal);
+
 xb_det = inv(diag(H_LS_p(:,ceil(i/(nSamples+1)))))*Y_b;
 m_det = bpsk_demod(xb_det);
 
@@ -166,11 +170,13 @@ end
 [nErr(j),ratio(j)] = biterr(m,m_det); %Generating the number of errors array and ratio array for ls (without for loop)
 [nErr_mmse(j),ratio_mmse(j)] = biterr(m,m_det_mmse); %Generating the number of errors array and ratio array for mmse (without for loop)
 
+CW_detFC_ideal(:,j) = m_det_ideal;
 CW_detFC(:,j)= m_det;
 CW_detFC_mmse(:,j)= m_det_mmse;
 end
 end
 
+[p_md_ideal,p_fa_ideal] = md_fa(CW,CW_detFC_ideal,nSamples,nCodeWords);
 [p_md,p_fa] = md_fa(CW,CW_detFC,nSamples,nCodeWords);
 [p_md_mmse,p_fa_mmse] = md_fa(CW,CW_detFC_mmse,nSamples,nCodeWords);
 
@@ -182,12 +188,16 @@ end
 [p_md_MAP_mmse,p_fa_MAP_mmse] = md_fa_MAP(CW,CW_mmse,nSamples,nCodeWords);
 
 % end MAP estimation
+p_md_ideal_arr = [p_md_ideal_arr p_md_ideal];
+p_fa_ideal_arr = [p_fa_ideal_arr p_fa_ideal];
 
 p_md_arr = [p_md_arr p_md];
 p_fa_arr = [p_fa_arr p_fa];
+
 p_md_mmse_arr = [p_md_mmse_arr p_md_mmse];
 p_fa_mmse_arr = [p_fa_mmse_arr p_fa_mmse];
-% 
+
+
 % % MAP figures
 p_md_MAP_ideal_arr = [p_md_MAP_ideal_arr p_md_MAP_ideal];
 p_fa_MAP_ideal_arr = [p_fa_MAP_ideal_arr p_fa_MAP_ideal];
@@ -202,10 +212,15 @@ p_fa_MAP_mmse_arr = [p_fa_MAP_mmse_arr p_fa_MAP_mmse];
 
 end
 
+p_md_ideal_array(r,:) = p_md_ideal_arr;
+p_fa_ideal_array(r,:) = p_fa_ideal_arr;
+
 p_md_LS_array(r,:) = p_md_arr;
 p_fa_LS_array(r,:) = p_fa_arr;
+
 p_md_mmse_array(r,:) = p_md_mmse_arr;
 p_fa_mmse_array(r,:) = p_fa_mmse_arr;
+
 p_md_MAP_ideal_array(r,:) = p_md_MAP_ideal_arr;
 p_fa_MAP_ideal_array(r,:) = p_fa_MAP_ideal_arr;
 p_md_MAP_LS_array(r,:) = p_md_MAP_LS_arr;
@@ -214,6 +229,8 @@ p_md_MAP_mmse_array(r,:) = p_md_MAP_mmse_arr;
 p_fa_MAP_mmse_array(r,:) = p_fa_MAP_mmse_arr;
 
 end
+p_md_ideal_final = mean(p_md_ideal_array);
+p_fa_ideal_final = mean(p_fa_ideal_array);
 
 p_md_LS_final = mean(p_md_LS_array);
 p_fa_LS_final = mean(p_fa_LS_array);
@@ -234,33 +251,50 @@ p_fa_MAP_mmse_final = mean(p_fa_MAP_mmse_array);
 
  figure(1)
  grid on
- hold all
- plot(fa,(p_md_LS_final),'r-o','LineWidth',2);
- plot(fa,(p_fa_LS_final),'k-o','LineWidth',2);
- plot(fa,(p_md_mmse_final),'k--','LineWidth',2);
- plot(fa,(p_fa_mmse_final),'r--','LineWidth',2);
- xlabel('Local FA probablity','FontSize',12,'FontWeight','bold','Color','k','Fontname', 'Arial','Interpreter', 'latex')
- ylabel('Probablity','FontSize',12,'FontWeight','bold','Color','k','Fontname', 'Arial','Interpreter', 'latex')
- legend('Misdetection (LS)', 'False Alarm (LS)','Misdetection (MMSE)', 'False Alarm (MMSE)','Location','best','FontSize',10,'Fontname','Arial','Interpreter','latex');
-
- figure(2)
- grid on
- hold on
- semilogx(th,(p_md_MAP_LS_final),'k-o','LineWidth',2);
- hold on
- semilogx(th,(p_md_MAP_mmse_final),'r--','LineWidth',2);
- hold on
- semilogx(th,(p_md_MAP_ideal_final),'b:','LineWidth',2);
+ subplot(311)
+ semilogx(flip(th),flip(1-(p_md_ideal_final)),'g-o','LineWidth',2);
+%plot(flip(th),flip(p_fa_ideal_final),'g--','LineWidth',2);
+ subplot(312)
+ semilogx(flip(th),flip(1-(p_md_LS_final)),'r-o','LineWidth',2);
+ %plot(flip(th),flip(p_fa_LS_final),'k-o','LineWidth',2);
+ subplot(313)
+ semilogx(flip(th),flip(1-(p_md_mmse_final)),'k--','LineWidth',2);
+ %plot(flip(th),flip(p_fa_mmse_final),'r--','LineWidth',2);
  xlabel('Threshold(W)','FontSize',12,'FontWeight','bold','Color','k','Fontname', 'Arial','Interpreter', 'latex')
  ylabel('Probablity','FontSize',12,'FontWeight','bold','Color','k','Fontname', 'Arial','Interpreter', 'latex')
- legend('Misdetection (LS)','Misdetection (MMSE)','Misdetection (Ideal)','Location','best','FontSize',10,'Fontname','Arial','Interpreter','latex');
+ %legend('Misdetection (LS)', 'False Alarm (LS)','Misdetection (MMSE)', 'False Alarm (MMSE)','Location','best','FontSize',10,'Fontname','Arial','Interpreter','latex');
+
+ fig = figure(2);
+ sgtitle('Detection Probability : MAP combiner')
+ grid on
+ subplot(3,1,1)
+ semilogx(flip(th),flip(1-(p_md_MAP_LS_final)),'k-o','LineWidth',2);
+ legend('Detection (LS)','Location','southwest','FontSize',10,'Fontname','Arial','Interpreter','latex');
+ subplot(312)
+ semilogx(flip(th),flip(1-(p_md_MAP_mmse_final)),'r--','LineWidth',2);
+ legend('Detection (MMSE)','Location','southwest','FontSize',10,'Fontname','Arial','Interpreter','latex');
+ subplot(313)
+ semilogx(flip(th),flip(1-(p_md_MAP_ideal_final)),'b:','LineWidth',2);
+ legend('Detection (Ideal)','Location','southwest','FontSize',10,'Fontname','Arial','Interpreter','latex');
+ han=axes(fig,'visible','off'); 
+ han.XLabel.Visible='on';
+ han.YLabel.Visible='on';
+ xlabel('Threshold(W)','FontSize',12,'FontWeight','bold','Color','k','Fontname', 'Arial','Interpreter', 'latex')
+ ylabel('Probablity($P_d$)','FontSize',12,'FontWeight','bold','Color','k','Fontname', 'Arial','Interpreter', 'latex')
+ 
 
  figure(3)
  grid on
- hold all
+ sgtitle('False Alarm Probability : MAP combiner')
+ subplot(311)
  semilogx(th,(p_fa_MAP_LS_final),'k-o','LineWidth',2);
+ legend('False Alarm (LS)','Location','best','FontSize',10,'Fontname','Arial','Interpreter','latex')
+ subplot(312)
  semilogx(th,(p_fa_MAP_mmse_final),'r--','LineWidth',2);
+ legend('False Alarm (MMSE)','Location','best','FontSize',10,'Fontname','Arial','Interpreter','latex')
+ subplot(313)
  semilogx(th,(p_fa_MAP_ideal_final),'b:','LineWidth',2);
+ legend('False Alarm (Ideal)','Location','best','FontSize',10,'Fontname','Arial','Interpreter','latex')
  xlabel('Threshold(W)','FontSize',12,'FontWeight','bold','Color','k','Fontname', 'Arial','Interpreter', 'latex')
  ylabel('Probablity','FontSize',12,'FontWeight','bold','Color','k','Fontname', 'Arial','Interpreter', 'latex')
- legend('False Alarm (LS)','False Alarm (MMSE)','False Alarm (Ideal)','Location','best','FontSize',10,'Fontname','Arial','Interpreter','latex');
+
