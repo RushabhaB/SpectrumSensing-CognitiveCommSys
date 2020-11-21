@@ -23,6 +23,7 @@ end
 energy_fin = energy_fin'; % Taking transpose to arrage values in descending order
 energy_desc = sort(energy_fin,'descend')'; % Arrange values in descending order
 thresh_sim(t) = energy_desc(ceil(fa(t)*iter)); % Threshold obtained by simulations
+th(t) = (qfuncinv(fa(t)/2))^2*(N0/2);
 end
 
 for i = 1:length(CW_State)
@@ -46,7 +47,7 @@ for k=1:nSU % Number of Monte Carlo Simulations
     energy_fin_1(k,:) =sum(energy(k,:)); % Test Statistic for the energy detection 
 end
 
-    detect = (energy_fin_1 >= thresh_sim(t)); % Checking whether the received energy is above the threshold
+    detect = ((energy_fin_1/10) >= th(t)); % Checking whether the received energy is above the threshold
     %i_prime = sum(detect); % Count how many times out of 'iter', the received energy is above the threshold.
     CW(i,:)=double(detect);
     
