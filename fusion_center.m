@@ -26,7 +26,7 @@ M = 2; %BPSK modulation
 
 %System Config
 N0 = 10;  % Noise power
-nCodeWords = 500;
+nCodeWords = 1000;
 %E_s =100;
 %E_s = (10^(i/10))*N0; % Signal energy
 %snr = 10*log10(E_s/N0); %SNR of the signal
@@ -47,6 +47,7 @@ fa = linspace(5.3201e-04,0.9887,25); % FA vector values taken from the paper bas
 iter = 5;
 
 for r=1:iter
+    r
 p_md_arr = [];
 p_fa_arr = [];
 p_md_mmse_arr = [];
@@ -248,53 +249,144 @@ p_md_MAP_mmse_final = mean(p_md_MAP_mmse_array);
 p_fa_MAP_mmse_final = mean(p_fa_MAP_mmse_array);
 
 
-
+% MAP vs Majority Ideal
  figure(1)
- grid on
- subplot(311)
- semilogx(flip(th),flip(1-(p_md_ideal_final)),'g-o','LineWidth',2);
-%plot(flip(th),flip(p_fa_ideal_final),'g--','LineWidth',2);
- subplot(312)
- semilogx(flip(th),flip(1-(p_md_LS_final)),'r-o','LineWidth',2);
- %plot(flip(th),flip(p_fa_LS_final),'k-o','LineWidth',2);
- subplot(313)
- semilogx(flip(th),flip(1-(p_md_mmse_final)),'k--','LineWidth',2);
- %plot(flip(th),flip(p_fa_mmse_final),'r--','LineWidth',2);
+ grid on 
+ semilogx(flip(th),flip(1-(p_md_ideal_final)),'k--','LineWidth',2);
+ hold on
+ semilogx(flip(th),flip(1-(p_md_MAP_ideal_final)),'k-','LineWidth',2);
+ hold on
  xlabel('Threshold(W)','FontSize',12,'FontWeight','bold','Color','k','Fontname', 'Arial','Interpreter', 'latex')
- ylabel('Probablity','FontSize',12,'FontWeight','bold','Color','k','Fontname', 'Arial','Interpreter', 'latex')
- %legend('Misdetection (LS)', 'False Alarm (LS)','Misdetection (MMSE)', 'False Alarm (MMSE)','Location','best','FontSize',10,'Fontname','Arial','Interpreter','latex');
+ ylabel('Probablity of detection ($P_d$)','FontSize',12,'FontWeight','bold','Color','k','Fontname', 'Arial','Interpreter', 'latex')
+ legend('Majority Combiner', 'MAP Combiner','Location','southwest','FontSize',10,'Fontname','Arial','Interpreter','latex');
 
- fig = figure(2);
- sgtitle('Detection Probability : MAP combiner')
+ %MAP LS vs MMSE P_d
+ figure(2)
  grid on
- subplot(3,1,1)
- semilogx(flip(th),flip(1-(p_md_MAP_LS_final)),'k-o','LineWidth',2);
- legend('Detection (LS)','Location','southwest','FontSize',10,'Fontname','Arial','Interpreter','latex');
- subplot(312)
+ %subplot(3,1,1)
+ semilogx(flip(th),flip(1-(p_md_MAP_LS_final)),'k-s','LineWidth',2);
+ %legend('Detection (LS)','Location','southwest','FontSize',10,'Fontname','Arial','Interpreter','latex');
+ %subplot(312)
+ hold on
  semilogx(flip(th),flip(1-(p_md_MAP_mmse_final)),'r--','LineWidth',2);
- legend('Detection (MMSE)','Location','southwest','FontSize',10,'Fontname','Arial','Interpreter','latex');
- subplot(313)
- semilogx(flip(th),flip(1-(p_md_MAP_ideal_final)),'b:','LineWidth',2);
- legend('Detection (Ideal)','Location','southwest','FontSize',10,'Fontname','Arial','Interpreter','latex');
- han=axes(fig,'visible','off'); 
- han.XLabel.Visible='on';
- han.YLabel.Visible='on';
+ %legend('Detection (MMSE)','Location','southwest','FontSize',10,'Fontname','Arial','Interpreter','latex');
+ %subplot(313)
+ %semilogx(flip(th),flip(1-(p_md_MAP_ideal_final)),'b:','LineWidth',2);
+ %legend('Detection (Ideal)','Location','southwest','FontSize',10,'Fontname','Arial','Interpreter','latex');
+ %han=axes(fig,'visible','off'); 
+ %han.XLabel.Visible='on';
+ %han.YLabel.Visible='on';
  xlabel('Threshold(W)','FontSize',12,'FontWeight','bold','Color','k','Fontname', 'Arial','Interpreter', 'latex')
- ylabel('Probablity($P_d$)','FontSize',12,'FontWeight','bold','Color','k','Fontname', 'Arial','Interpreter', 'latex')
- 
+ ylabel('Probablity of detection ($P_d$)','FontSize',12,'FontWeight','bold','Color','k','Fontname', 'Arial','Interpreter', 'latex')
+ legend('LS Estimate', 'MMSE Estimate','Location','southwest','FontSize',10,'Fontname','Arial','Interpreter','latex');
+ title('MAP combiner','FontSize',12,'FontWeight','bold','Color','k','Fontname', 'Arial','Interpreter', 'latex')
 
+ %MAP LS vs MMSE P_fa
  figure(3)
  grid on
- sgtitle('False Alarm Probability : MAP combiner')
- subplot(311)
- semilogx(th,(p_fa_MAP_LS_final),'k-o','LineWidth',2);
- legend('False Alarm (LS)','Location','best','FontSize',10,'Fontname','Arial','Interpreter','latex')
- subplot(312)
- semilogx(th,(p_fa_MAP_mmse_final),'r--','LineWidth',2);
- legend('False Alarm (MMSE)','Location','best','FontSize',10,'Fontname','Arial','Interpreter','latex')
- subplot(313)
- semilogx(th,(p_fa_MAP_ideal_final),'b:','LineWidth',2);
- legend('False Alarm (Ideal)','Location','best','FontSize',10,'Fontname','Arial','Interpreter','latex')
+ %subplot(3,1,1)
+ semilogx(flip(th),flip((p_fa_MAP_LS_final)),'k-s','LineWidth',2);
+ %legend('Detection (LS)','Location','southwest','FontSize',10,'Fontname','Arial','Interpreter','latex');
+ %subplot(312)
+ hold on
+ semilogx(flip(th),flip((p_fa_MAP_mmse_final)),'r--','LineWidth',2);
+ %legend('Detection (MMSE)','Location','southwest','FontSize',10,'Fontname','Arial','Interpreter','latex');
+ %subplot(313)
+ %semilogx(flip(th),flip(1-(p_md_MAP_ideal_final)),'b:','LineWidth',2);
+ %legend('Detection (Ideal)','Location','southwest','FontSize',10,'Fontname','Arial','Interpreter','latex');
+ %han=axes(fig,'visible','off'); 
+ %han.XLabel.Visible='on';
+ %han.YLabel.Visible='on';
  xlabel('Threshold(W)','FontSize',12,'FontWeight','bold','Color','k','Fontname', 'Arial','Interpreter', 'latex')
- ylabel('Probablity','FontSize',12,'FontWeight','bold','Color','k','Fontname', 'Arial','Interpreter', 'latex')
+ ylabel('Probablity of false alarm ($P_{fa}$)','FontSize',12,'FontWeight','bold','Color','k','Fontname', 'Arial','Interpreter', 'latex')
+ legend('LS Estimate', 'MMSE Estimate','Location','southwest','FontSize',10,'Fontname','Arial','Interpreter','latex');
+ title('MAP combiner','FontSize',12,'FontWeight','bold','Color','k','Fontname', 'Arial','Interpreter', 'latex')
+ 
+ 
+ %Majority LS vs MMSE P_d
+ figure(4)
+ grid on
+ %subplot(3,1,1)
+ semilogx(flip(th),flip(1-(p_md_LS_final)),'k-s','LineWidth',2);
+ %legend('Detection (LS)','Location','southwest','FontSize',10,'Fontname','Arial','Interpreter','latex');
+ %subplot(312)
+ hold on
+ semilogx(flip(th),flip(1-(p_md_mmse_final)),'r--','LineWidth',2);
+ %legend('Detection (MMSE)','Location','southwest','FontSize',10,'Fontname','Arial','Interpreter','latex');
+ %subplot(313)
+ %semilogx(flip(th),flip(1-(p_md_MAP_ideal_final)),'b:','LineWidth',2);
+ %legend('Detection (Ideal)','Location','southwest','FontSize',10,'Fontname','Arial','Interpreter','latex');
+ %han=axes(fig,'visible','off'); 
+ %han.XLabel.Visible='on';
+ %han.YLabel.Visible='on';
+ xlabel('Threshold(W)','FontSize',12,'FontWeight','bold','Color','k','Fontname', 'Arial','Interpreter', 'latex')
+ ylabel('Probablity of detection ($P_d$)','FontSize',12,'FontWeight','bold','Color','k','Fontname', 'Arial','Interpreter', 'latex')
+ legend('LS Estimate', 'MMSE Estimate','Location','southwest','FontSize',10,'Fontname','Arial','Interpreter','latex');
+ title('Majority combiner','FontSize',12,'FontWeight','bold','Color','k','Fontname', 'Arial','Interpreter', 'latex')
+
+ %Majority LS vs MMSE P_fa
+ figure(5)
+ grid on
+ %subplot(3,1,1)
+ semilogx(flip(th),flip((p_fa_LS_final)),'k-s','LineWidth',2);
+ %legend('Detection (LS)','Location','southwest','FontSize',10,'Fontname','Arial','Interpreter','latex');
+ %subplot(312)
+ hold on
+ semilogx(flip(th),flip((p_fa_mmse_final)),'r--','LineWidth',2);
+ %legend('Detection (MMSE)','Location','southwest','FontSize',10,'Fontname','Arial','Interpreter','latex');
+ %subplot(313)
+ %semilogx(flip(th),flip(1-(p_md_MAP_ideal_final)),'b:','LineWidth',2);
+ %legend('Detection (Ideal)','Location','southwest','FontSize',10,'Fontname','Arial','Interpreter','latex');
+ %han=axes(fig,'visible','off'); 
+ %han.XLabel.Visible='on';
+ %han.YLabel.Visible='on';
+ xlabel('Threshold(W)','FontSize',12,'FontWeight','bold','Color','k','Fontname', 'Arial','Interpreter', 'latex')
+ ylabel('Probablity of false alarm ($P_{fa}$)','FontSize',12,'FontWeight','bold','Color','k','Fontname', 'Arial','Interpreter', 'latex')
+ legend('LS Estimate', 'MMSE Estimate','Location','southwest','FontSize',10,'Fontname','Arial','Interpreter','latex');
+ title('Majority combiner','FontSize',12,'FontWeight','bold','Color','k','Fontname', 'Arial','Interpreter', 'latex')
+ 
+
+ 
+ % Majority MD vs FA
+ figure(6)
+ grid on 
+ hold all
+ plot(fa,p_md_LS_final,'k-d','LineWidth',2);
+ hold on
+ plot(fa,p_md_mmse_final,'r--','LineWidth',2);
+ xlabel('Probablity of local SU false alarm ($P_{fa}$)','FontSize',12,'FontWeight','bold','Color','k','Fontname', 'Arial','Interpreter', 'latex')
+ ylabel('Probablity of misdetection ($P_{md}$)','FontSize',12,'FontWeight','bold','Color','k','Fontname', 'Arial','Interpreter', 'latex')
+ legend('LS Estimate', 'MMSE Estimate','Location','northwest','FontSize',10,'Fontname','Arial','Interpreter','latex');
+ title('Majority combiner','FontSize',12,'FontWeight','bold','Color','k','Fontname', 'Arial','Interpreter', 'latex')
+ 
+
+ % MAP MD vs FA
+ figure(7)
+ grid on 
+ hold all
+ plot(fa,p_md_MAP_LS_final,'k-d','LineWidth',2);
+ hold on
+ plot(fa,p_md_MAP_mmse_final,'r--','LineWidth',2);
+ xlabel('Probablity of local SU false alarm ($P_{fa}$)','FontSize',12,'FontWeight','bold','Color','k','Fontname', 'Arial','Interpreter', 'latex')
+ ylabel('Probablity of misdetection ($P_{md}$)','FontSize',12,'FontWeight','bold','Color','k','Fontname', 'Arial','Interpreter', 'latex')
+ legend('LS Estimate', 'MMSE Estimate','Location','northeast','FontSize',10,'Fontname','Arial','Interpreter','latex');
+ title('MAP combiner','FontSize',12,'FontWeight','bold','Color','k','Fontname', 'Arial','Interpreter', 'latex')
+ 
+
+ 
+ 
+%  figure(5)
+%  grid on
+%  sgtitle('False Alarm Probability : MAP combiner')
+%  subplot(311)
+%  semilogx(th,(p_fa_MAP_LS_final),'k-o','LineWidth',2);
+%  legend('False Alarm (LS)','Location','best','FontSize',10,'Fontname','Arial','Interpreter','latex')
+%  subplot(312)
+%  semilogx(th,(p_fa_MAP_mmse_final),'r--','LineWidth',2);
+%  legend('False Alarm (MMSE)','Location','best','FontSize',10,'Fontname','Arial','Interpreter','latex')
+%  subplot(313)
+%  semilogx(th,(p_fa_MAP_ideal_final),'b:','LineWidth',2);
+%  legend('False Alarm (Ideal)','Location','best','FontSize',10,'Fontname','Arial','Interpreter','latex')
+%  xlabel('Threshold(W)','FontSize',12,'FontWeight','bold','Color','k','Fontname', 'Arial','Interpreter', 'latex')
+%  ylabel('Probablity','FontSize',12,'FontWeight','bold','Color','k','Fontname', 'Arial','Interpreter', 'latex')
 
