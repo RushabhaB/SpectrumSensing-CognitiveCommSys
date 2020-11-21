@@ -59,9 +59,8 @@ p_md_MAP_LS_arr = [];
 p_fa_MAP_LS_arr = [];
 p_md_MAP_mmse_arr = [];
 p_fa_MAP_mmse_arr = [];
- r
+
 for k=1:length(fa)
-fa(k)
 [x,x_det] = stage1_ED (nSU,nCodeWords,nSamples,E_s,fa(k));
 CW = x;
 CW_ideal = ones(size(CW));
@@ -134,26 +133,14 @@ xb_det_mmse = inv(diag(H_mmse_p(:,ceil(i/(nSamples+1)))))*Y_b;
 m_det_mmse = bpsk_demod(xb_det_mmse);
 
 %Begin the MAP estimate 
+Ka_min = min(sum(abs(Y_b-X_b*H(:,ceil(i/(nSamples+1)))).^2) - N0 *log(CW_p(k,1,:)));
+Ki_min= min(sum(abs(Y_b-X_b*H(:,ceil(i/(nSamples+1)))).^2) - N0 *log(CW_p(k,2,:)));
 
-for p = 1:2^nSU
-    Ka(p) = sum(abs(Y_b-X_b*H(:,ceil(i/(nSamples+1)))).^2) - N0 *log(CW_p(k,1,p));
-    Ki(p) = sum(abs(Y_b-X_b*H(:,ceil(i/(nSamples+1)))).^2) - N0 *log(CW_p(k,2,p));
-    
-    Ka_LS(p) = sum(abs(Y_b-X_b*H_LS_p(:,ceil(i/(nSamples+1)))).^2) - N0 *log(CW_p(k,1,p));
-    Ki_LS(p) = sum(abs(Y_b-X_b*H_LS_p(:,ceil(i/(nSamples+1)))).^2) - N0 *log(CW_p(k,2,p));
-    
-    Ka_mmse(p) = sum(abs(Y_b-X_b*H_mmse_p(:,ceil(i/(nSamples+1)))).^2) - N0 *log(CW_p(k,1,p));
-    Ki_mmse(p) = sum(abs(Y_b-X_b*H_mmse_p(:,ceil(i/(nSamples+1)))).^2) - N0 *log(CW_p(k,2,p));
-end
-Ka_min = min(Ka);
-Ki_min = min(Ki);
+Ka_min_LS = min(sum(abs(Y_b-X_b*H_LS_p(:,ceil(i/(nSamples+1)))).^2) - N0 *log(CW_p(k,1,:)));
+Ki_min_LS = min(sum(abs(Y_b-X_b*H_LS_p(:,ceil(i/(nSamples+1)))).^2) - N0 *log(CW_p(k,2,:)));
 
-Ka_min_LS = min(Ka_LS);
-Ki_min_LS = min(Ki_LS);
-
-Ka_min_mmse = min(Ka_mmse);
-Ki_min_mmse = min(Ki_mmse);
-
+Ka_min_mmse = min(sum(abs(Y_b-X_b*H_mmse_p(:,ceil(i/(nSamples+1)))).^2) - N0 *log(CW_p(k,1,:)));
+Ki_min_mmse = min(sum(abs(Y_b-X_b*H_mmse_p(:,ceil(i/(nSamples+1)))).^2) - N0 *log(CW_p(k,2,:)));
 
 if (Ka_min < Ki_min)
     CW_ideal(j) = 1;
@@ -172,9 +159,10 @@ if (Ka_min_mmse < Ki_min_mmse)
 else
     CW_mmse(j) = 0;
 end
+%End MAP estimate
+
 %BER
-%[nErr(floor(i/1)),ratio(floor(i/1))] = biterr(m,m_det); %Generating the
-%number of errors array and ratio array ( include in snr for loop)
+
 [nErr(j),ratio(j)] = biterr(m,m_det); %Generating the number of errors array and ratio array for ls (without for loop)
 [nErr_mmse(j),ratio_mmse(j)] = biterr(m,m_det_mmse); %Generating the number of errors array and ratio array for mmse (without for loop)
 
