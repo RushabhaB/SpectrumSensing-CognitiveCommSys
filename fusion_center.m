@@ -76,7 +76,7 @@ for i = 1:nSamples+1:nCodeWords
 end
 %for i 
 % Rayleigh Fading Coefficients
-H=(randn([nSU nCodeWords])+1j*randn([nSU nCodeWords]))/sqrt(2); % Channel Matrix
+H=(randn([nSU ceil(nCodeWords/(nSamples+1))])+1j*randn([nSU ceil(nCodeWords/(nSamples+1))]))/sqrt(2); % Channel Matrix
 
 % Gaussian noise 
 W=sqrt(N0)*(randn([nSU nCodeWords])+randn([nSU nCodeWords])*1j)/sqrt(2);% Noise vector of CSCG noise for SU
@@ -86,7 +86,7 @@ x_p = sqrt(E_s).*exp(-1i*pi*2*(m_p)/M); % BPSK Pilot symbol for all the SU
 
 X_p = diag(x_p); % Generating the symbol matrix with the diagonal elements as the data symbols
 
-Y_p = X_p*H(:,i) + W(:,i); % Output symbols at the Fusion Centre (FC)
+Y_p = X_p*H(:,ceil(i/(nSamples+1))) + W(:,i); % Output symbols at the Fusion Centre (FC)
 
 %Channel  Estimation
 H_LS_p(:,ceil(i/(nSamples+1))) = inv(X_p*X_p')*X_p'*Y_p; %MISO Least Square detection using pilots
@@ -95,23 +95,23 @@ H_mmse_p(:,ceil(i/(nSamples+1))) = conj(u).*Y_p; %Standard formula
 %dif = H_mmse_p - H_LS_p %Just to check difference... max difference is 0.01 per dimension
 end
 
-% Begin Interpolation
-for n = 1:nSU
-if pilot_loc(1)>1
-  slope = (H_LS_p(n,2)-H_LS_p(n,1))/(pilot_loc(2)-pilot_loc(1));
-  x = [H_LS_p(n,1)-slope*(pilot_loc(1)-1)  H_LS_p(n,:)]; y = [1 pilot_loc];
-  z=  [H_mmse_p(n,1)-slope*(pilot_loc(1)-1)  H_mmse_p(n,:)];
-end
-if pilot_loc(end)< nCodeWords
-  slope = (H_LS_p(n,end)-H_LS_p(n,end-1))/(pilot_loc(end)-pilot_loc(end-1));  
-  x = [H_LS_p(n,:)  H_LS_p(n,end)+slope*(nCodeWords-pilot_loc(end))]; y = [pilot_loc nCodeWords];
-  z=[H_mmse_p(n,:)  H_mmse_p(n,end)+slope*(nCodeWords-pilot_loc(end))];
-end
-
- H_LS_ipl(n,:) = interp1(y(1:101),x,[1:nCodeWords],'spline');
- H_mmse_ipl(n,:) = interp1(y(1:101),z,[1:nCodeWords],'spline');
-end
-% End interpolation block
+% % Begin Interpolation
+% for n = 1:nSU
+% if pilot_loc(1)>1
+%   slope = (H_LS_p(n,2)-H_LS_p(n,1))/(pilot_loc(2)-pilot_loc(1));
+%   x = [H_LS_p(n,1)-slope*(pilot_loc(1)-1)  H_LS_p(n,:)]; y = [1 pilot_loc];
+%   z=  [H_mmse_p(n,1)-slope*(pilot_loc(1)-1)  H_mmse_p(n,:)];
+% end
+% if pilot_loc(end)< nCodeWords
+%   slope = (H_LS_p(n,end)-H_LS_p(n,end-1))/(pilot_loc(end)-pilot_loc(end-1));  
+%   x = [H_LS_p(n,:)  H_LS_p(n,end)+slope*(nCodeWords-pilot_loc(end))]; y = [pilot_loc nCodeWords];
+%   z=[H_mmse_p(n,:)  H_mmse_p(n,end)+slope*(nCodeWords-pilot_loc(end))];
+% end
+% 
+%  H_LS_ipl(n,:) = interp1(y(1:101),x,[1:nCodeWords],'spline');
+%  H_mmse_ipl(n,:) = interp1(y(1:101),z,[1:nCodeWords],'spline');
+% end
+% % End interpolation block
 
 % Begin using the interpolate values to fetermine the data 
 for i = 1:nSamples+1:nCodeWords
@@ -121,29 +121,29 @@ for j = i+1:i+nSamples
 m = CW_detSU(:,j); % Transmitting the received PU signal by the SU to the FC
 xb = sqrt(E_s).*exp(-1i*pi*2*(m)/M); % BPSK Data symbol for all the SU
 X_b = diag(xb); % Generating the symbol matrix with the diagonal elements as the data symbols
-Y_b = X_b*H(:,j) + W(:,j); % Output symbols at the Fusion Centre (FC)
+Y_b = X_b*H(:,ceil(i/(nSamples+1))) + W(:,j); % Output symbols at the Fusion Centre (FC)
 
 % Detection using estimated channel 
 
 % Detecting the received bits from the ZF equalisation (LS) of received vector
-xb_det = inv(diag(H_LS_ipl(:,j)))*Y_b;
+xb_det = inv(diag(H_LS_p(:,ceil(i/(nSamples+1)))))*Y_b;
 m_det = bpsk_demod(xb_det);
 
 % Detecting the received bits from the ZF equalisation (MMSE) of received vector
-xb_det_mmse = inv(diag(H_mmse_ipl(:,j)))*Y_b;
+xb_det_mmse = inv(diag(H_mmse_p(:,ceil(i/(nSamples+1)))))*Y_b;
 m_det_mmse = bpsk_demod(xb_det_mmse);
 
 %Begin the MAP estimate 
 
 for p = 1:2^nSU
-    Ka(p) = sum(abs(Y_b-X_b*H(:,j)).^2) - N0 *log(CW_p(k,1,p));
-    Ki(p) = sum(abs(Y_b-X_b*H(:,j)).^2) - N0 *log(CW_p(k,2,p));
+    Ka(p) = sum(abs(Y_b-X_b*H(:,ceil(i/(nSamples+1)))).^2) - N0 *log(CW_p(k,1,p));
+    Ki(p) = sum(abs(Y_b-X_b*H(:,ceil(i/(nSamples+1)))).^2) - N0 *log(CW_p(k,2,p));
     
-    Ka_LS(p) = sum(abs(Y_b-X_b*H_LS_ipl(:,j)).^2) - N0 *log(CW_p(k,1,p));
-    Ki_LS(p) = sum(abs(Y_b-X_b*H_LS_ipl(:,j)).^2) - N0 *log(CW_p(k,2,p));
+    Ka_LS(p) = sum(abs(Y_b-X_b*H_LS_p(:,ceil(i/(nSamples+1))).^2)) - N0 *log(CW_p(k,1,p));
+    Ki_LS(p) = sum(abs(Y_b-X_b*H_LS_p(:,ceil(i/(nSamples+1))).^2)) - N0 *log(CW_p(k,2,p));
     
-    Ka_mmse(p) = sum(abs(Y_b-X_b*H_mmse_ipl(:,j)).^2) - N0 *log(CW_p(k,1,p));
-    Ki_mmse(p) = sum(abs(Y_b-X_b*H_mmse_ipl(:,j)).^2) - N0 *log(CW_p(k,2,p));
+    Ka_mmse(p) = sum(abs(Y_b-X_b*H_mmse_p(:,ceil(i/(nSamples+1))).^2)) - N0 *log(CW_p(k,1,p));
+    Ki_mmse(p) = sum(abs(Y_b-X_b*H_mmse_p(:,ceil(i/(nSamples+1))).^2)) - N0 *log(CW_p(k,2,p));
 end
 Ka_min = min(Ka);
 Ki_min = min(Ki);
