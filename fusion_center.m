@@ -42,6 +42,11 @@ E_s = 100;
 fa =0.005:0.005:0.05;
 th = linspace(10^-4,6,length(fa));
 CW_p = MAP_est(th,N0,E_s);
+
+
+iter = 10^5;
+
+for r=1:iter
 p_md_arr = [];
 p_fa_arr = [];
 p_md_mmse_arr = [];
@@ -54,7 +59,7 @@ p_md_MAP_LS_arr = [];
 p_fa_MAP_LS_arr = [];
 p_md_MAP_mmse_arr = [];
 p_fa_MAP_mmse_arr = [];
-
+ r
 for k=1:length(fa)
 fa(k)
 [x,x_det] = stage1_ED (nSU,nCodeWords,nSamples,E_s,fa(k));
@@ -194,53 +199,80 @@ p_md_arr = [p_md_arr p_md];
 p_fa_arr = [p_fa_arr p_fa];
 p_md_mmse_arr = [p_md_mmse_arr p_md_mmse];
 p_fa_mmse_arr = [p_fa_mmse_arr p_fa_mmse];
-
-% MAP figures
+% 
+% % MAP figures
 p_md_MAP_ideal_arr = [p_md_MAP_ideal_arr p_md_MAP_ideal];
 p_fa_MAP_ideal_arr = [p_fa_MAP_ideal_arr p_fa_MAP_ideal];
-
+% 
 p_md_MAP_LS_arr = [p_md_MAP_LS_arr p_md_MAP_LS];
 p_fa_MAP_LS_arr = [p_fa_MAP_LS_arr p_fa_MAP_LS];
-
+% 
 p_md_MAP_mmse_arr = [p_md_MAP_mmse_arr p_md_MAP_mmse];
 p_fa_MAP_mmse_arr = [p_fa_MAP_mmse_arr p_fa_MAP_mmse];
 
+
+
 end
+
+p_md_LS_array(r,:) = p_md_arr;
+p_fa_LS_array(r,:) = p_fa_arr;
+p_md_mmse_array(r,:) = p_md_mmse_arr;
+p_fa_mmse_array(r,:) = p_fa_mmse_arr;
+p_md_MAP_ideal_array(r,:) = p_md_MAP_ideal_arr;
+p_fa_MAP_ideal_array(r,:) = p_fa_MAP_ideal_arr;
+p_md_MAP_LS_array(r,:) = p_md_MAP_LS_arr;
+p_fa_MAP_LS_array(r,:) = p_fa_MAP_LS_arr;
+p_md_MAP_mmse_array(r,:) = p_md_MAP_mmse_arr;
+p_fa_MAP_mmse_array(r,:) = p_fa_MAP_mmse_arr;
+
+end
+
+p_md_LS_final = mean(p_md_LS_array);
+p_fa_LS_final = mean(p_fa_LS_array);
+
+p_md_mmse_final = mean(p_md_LS_array);
+p_fa_mmse_final = mean(p_fa_LS_array);
+
+p_md_MAP_ideal_final = mean(p_md_MAP_ideal_array);
+p_fa_MAP_ideal_final = mean(p_fa_MAP_ideal_array);
+
+p_md_MAP_LS_final = mean(p_md_MAP_LS_array);
+p_fa_MAP_LS_final = mean(p_fa_MAP_LS_array);
+
+p_md_MAP_mmse_final = mean(p_md_MAP_mmse_array);
+p_fa_MAP_mmse_final = mean(p_fa_MAP_mmse_array);
+
 
 
  figure(1)
  grid on
  hold all
- plot(fa,(p_md_arr),'r-o','LineWidth',2);
- plot(fa,(p_fa_arr),'k-o','LineWidth',2);
- plot(fa,(p_md_mmse_arr),'k--','LineWidth',2);
- plot(fa,(p_fa_mmse_arr),'r--','LineWidth',2);
+ plot(fa,(p_md_LS_final),'r-o','LineWidth',2);
+ plot(fa,(p_fa_LS_final),'k-o','LineWidth',2);
+ plot(fa,(p_md_mmse_final),'k--','LineWidth',2);
+ plot(fa,(p_fa_mmse_final),'r--','LineWidth',2);
  xlabel('Local FA probablity','FontSize',12,'FontWeight','bold','Color','k','Fontname', 'Arial','Interpreter', 'latex')
  ylabel('Probablity','FontSize',12,'FontWeight','bold','Color','k','Fontname', 'Arial','Interpreter', 'latex')
- legend('Misdetection (LS)', 'False Alarm (LS)','Misdetection (MMSE)', 'False Alarm (MMSE)','Location','southeastoutside','FontSize',12,'Fontname','Arial','Interpreter','latex');
+ legend('Misdetection (LS)', 'False Alarm (LS)','Misdetection (MMSE)', 'False Alarm (MMSE)','Location','best','FontSize',10,'Fontname','Arial','Interpreter','latex');
 
  figure(2)
  grid on
  hold on
- loglog(th,(p_md_MAP_LS_arr),'r-o','LineWidth',2);
+ semilogx(th,(p_md_MAP_LS_final),'k-o','LineWidth',2);
  hold on
- loglog(th,(p_md_MAP_mmse_arr),'k--','LineWidth',2);
+ semilogx(th,(p_md_MAP_mmse_final),'r--','LineWidth',2);
  hold on
- loglog(th,(p_md_MAP_ideal_arr),'g-.','LineWidth',2);
- 
+ semilogx(th,(p_md_MAP_ideal_final),'b:','LineWidth',2);
  xlabel('Threshold(W)','FontSize',12,'FontWeight','bold','Color','k','Fontname', 'Arial','Interpreter', 'latex')
  ylabel('Probablity','FontSize',12,'FontWeight','bold','Color','k','Fontname', 'Arial','Interpreter', 'latex')
- legend('Misdetection (LS)','Misdetection (MMSE)','Misdetection (Ideal)','Location','southeastoutside','FontSize',12,'Fontname','Arial','Interpreter','latex');
+ legend('Misdetection (LS)','Misdetection (MMSE)','Misdetection (Ideal)','Location','best','FontSize',10,'Fontname','Arial','Interpreter','latex');
 
  figure(3)
  grid on
  hold all
- 
- semilogx(th,(p_fa_MAP_LS_arr),'k-o','LineWidth',2);
- 
- semilogx(th,(p_fa_MAP_mmse_arr),'r--','LineWidth',2);
- 
- semilogx(th,(p_fa_MAP_ideal_arr),'b:','LineWidth',2);
+ semilogx(th,(p_fa_MAP_LS_final),'k-o','LineWidth',2);
+ semilogx(th,(p_fa_MAP_mmse_final),'r--','LineWidth',2);
+ semilogx(th,(p_fa_MAP_ideal_final),'b:','LineWidth',2);
  xlabel('Threshold(W)','FontSize',12,'FontWeight','bold','Color','k','Fontname', 'Arial','Interpreter', 'latex')
  ylabel('Probablity','FontSize',12,'FontWeight','bold','Color','k','Fontname', 'Arial','Interpreter', 'latex')
- legend('False Alarm (LS)','False Alarm (MMSE)','False Alarm (Ideal)','Location','southeastoutside','FontSize',12,'Fontname','Arial','Interpreter','latex');
+ legend('False Alarm (LS)','False Alarm (MMSE)','False Alarm (Ideal)','Location','best','FontSize',10,'Fontname','Arial','Interpreter','latex');
