@@ -139,11 +139,11 @@ for p = 1:2^nSU
     Ka(p) = sum(abs(Y_b-X_b*H(:,ceil(i/(nSamples+1)))).^2) - N0 *log(CW_p(k,1,p));
     Ki(p) = sum(abs(Y_b-X_b*H(:,ceil(i/(nSamples+1)))).^2) - N0 *log(CW_p(k,2,p));
     
-    Ka_LS(p) = sum(abs(Y_b-X_b*H_LS_p(:,ceil(i/(nSamples+1))).^2)) - N0 *log(CW_p(k,1,p));
-    Ki_LS(p) = sum(abs(Y_b-X_b*H_LS_p(:,ceil(i/(nSamples+1))).^2)) - N0 *log(CW_p(k,2,p));
+    Ka_LS(p) = sum(abs(Y_b-X_b*H_LS_p(:,ceil(i/(nSamples+1)))).^2) - N0 *log(CW_p(k,1,p));
+    Ki_LS(p) = sum(abs(Y_b-X_b*H_LS_p(:,ceil(i/(nSamples+1)))).^2) - N0 *log(CW_p(k,2,p));
     
-    Ka_mmse(p) = sum(abs(Y_b-X_b*H_mmse_p(:,ceil(i/(nSamples+1))).^2)) - N0 *log(CW_p(k,1,p));
-    Ki_mmse(p) = sum(abs(Y_b-X_b*H_mmse_p(:,ceil(i/(nSamples+1))).^2)) - N0 *log(CW_p(k,2,p));
+    Ka_mmse(p) = sum(abs(Y_b-X_b*H_mmse_p(:,ceil(i/(nSamples+1)))).^2) - N0 *log(CW_p(k,1,p));
+    Ki_mmse(p) = sum(abs(Y_b-X_b*H_mmse_p(:,ceil(i/(nSamples+1)))).^2) - N0 *log(CW_p(k,2,p));
 end
 Ka_min = min(Ka);
 Ki_min = min(Ki);

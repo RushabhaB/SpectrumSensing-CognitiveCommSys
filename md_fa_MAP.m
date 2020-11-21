@@ -6,8 +6,8 @@ b = CW_det;
 %a(a<2) = 0; % Actual PU status - Idle
 %a(a>0) = 1; % Actual PU status - Active
 a=CW;
-b(b<2) = 0; % Estimated PU status - Idle
-b(b>0) = 1; % Estimated PU status - Active
+%b(b<2) = 0; % Estimated PU status - Idle
+%b(b>0) = 1; % Estimated PU status - Active
 
 pilots_len = length(1: nSamples+1 :nCodeWords); % Number of pilot codewords
 actual_data_len = nCodeWords - pilots_len; % Number of actual data codewords
