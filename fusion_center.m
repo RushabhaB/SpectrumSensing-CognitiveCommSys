@@ -39,12 +39,12 @@ m_p = ones([nSU 1]); % Pilot bits
 %power_noise_ratio = 10.^(power_noise_ratio_db/10);
 E_s = 100;
 
-fa =0.005:0.005:0.05;
-th = linspace(10^-4,6,length(fa));
-CW_p = MAP_est(th,N0,E_s);
+fa = linspace(5.3201e-04,0.9887,25); % FA vector values taken from the paper based on th : 10^-4 - 6 W
+%th = linspace(10^-4,6,length(fa));
+[th,CW_p] = MAP_est(fa,N0,E_s);
 
 
-iter = 10^5;
+iter = 5;
 
 for r=1:iter
 p_md_arr = [];
@@ -136,14 +136,14 @@ m_det_mmse = bpsk_demod(xb_det_mmse);
 %Begin the MAP estimate 
 
 for p = 1:2^nSU
-    Ka = sum(abs(Y_b-X_b*H(:,j)).^2) - N0 *log(CW_p(k,1,p));
-    Ki = sum(abs(Y_b-X_b*H(:,j)).^2) - N0 *log(CW_p(k,2,p));
+    Ka(p) = sum(abs(Y_b-X_b*H(:,j)).^2) - N0 *log(CW_p(k,1,p));
+    Ki(p) = sum(abs(Y_b-X_b*H(:,j)).^2) - N0 *log(CW_p(k,2,p));
     
-    Ka_LS = sum(abs(Y_b-X_b*H_LS_ipl(:,j)).^2) - N0 *log(CW_p(k,1,p));
-    Ki_LS = sum(abs(Y_b-X_b*H_LS_ipl(:,j)).^2) - N0 *log(CW_p(k,2,p));
+    Ka_LS(p) = sum(abs(Y_b-X_b*H_LS_ipl(:,j)).^2) - N0 *log(CW_p(k,1,p));
+    Ki_LS(p) = sum(abs(Y_b-X_b*H_LS_ipl(:,j)).^2) - N0 *log(CW_p(k,2,p));
     
-    Ka_mmse = sum(abs(Y_b-X_b*H_mmse_ipl(:,j)).^2) - N0 *log(CW_p(k,1,p));
-    Ki_mmse = sum(abs(Y_b-X_b*H_mmse_ipl(:,j)).^2) - N0 *log(CW_p(k,2,p));
+    Ka_mmse(p) = sum(abs(Y_b-X_b*H_mmse_ipl(:,j)).^2) - N0 *log(CW_p(k,1,p));
+    Ki_mmse(p) = sum(abs(Y_b-X_b*H_mmse_ipl(:,j)).^2) - N0 *log(CW_p(k,2,p));
 end
 Ka_min = min(Ka);
 Ki_min = min(Ki);
@@ -151,8 +151,8 @@ Ki_min = min(Ki);
 Ka_min_LS = min(Ka_LS);
 Ki_min_LS = min(Ki_LS);
 
-Ka_min_mmse = min(Ka_LS);
-Ki_min_mmse = min(Ki_LS);
+Ka_min_mmse = min(Ka_mmse);
+Ki_min_mmse = min(Ki_mmse);
 
 
 if (Ka_min < Ki_min)
