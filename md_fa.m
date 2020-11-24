@@ -1,13 +1,20 @@
-% Function to give P_md (misdetection) and P_fa (false alarm) 
-
 function [p_md,p_fa] = md_fa(CW,CW_det,nSamples,nCodeWords)
+% This function provides the proability of misdetection and 
+% false alarm based on the local FA for the majority combiner.
+%  Inputs to the function :
+%        CW : Actual state of the PU whose size is 1xnCodeWords
+%        CW_det : Detected PU state by each SU , matrix size is nSUx nCodeWords
+%        nCodeWords : number of codewords
+%        nSamples : number of samples for which the channel remains
+%        constant
+% Outputs the function provides :
+%        p_md : Probability of missed detection
+%        p_fa : Proability of false alarm
 
-%a = sum(CW);
-b = sum(CW_det);
 
-%a(a<2) = 0; % Actual PU status - Idle
-%a(a>0) = 1; % Actual PU status - Active
-a=CW;
+a=CW;            % Actual state of PU
+b = sum(CW_det); % Reducing the dimension of nSU to 1
+
 b(b<2) = 0; % Estimated PU status - Idle
 b(b>0) = 1; % Estimated PU status - Active
 

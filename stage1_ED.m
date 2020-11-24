@@ -1,14 +1,28 @@
 function [CW_State, CW] = stage1_ED (nSU,nCodeword,nSamples,E_s,fa)
+
+% This function provides the results of the status of the PU from all the
+% SUs based on the Energy Detection (ED) technique.
+%  Inputs to the function :
+%        nSU = number of Users
+%        nCodeWords = number of codewords
+%        nSamples = number of samples for which the channel remains
+%        constant
+%        E_s = energy of the symbol
+%        fa = local false alarm rate vector
+% Outputs the function provides :
+%        CW_State : Actual state of the PU whose size is 1xnCodeWords
+%        CW : Detected PU state by each SU , matrix size is nCodeWordsxnSU
+ 
 CW=[];
 
 CW_State = randi([0,1], [1,nCodeword]);
 
 L = nSamples; % Number of sensing samples
 iter =10^5; % Number of iterations 
-%fa =0.01:0.03:1; % Probability of False Alarm
-%fa = 0.05;
+
 E_p_l = E_s; % SNR in linear scale
 for t = 1:length(fa) % Calculating threshold for each value of false alarm
+    %%5%
  energy_fin = []; 
  N0=1; % Noise power
  n = [];

@@ -1,7 +1,13 @@
 function [th,CW_p] = MAP_est(fa,N0,E_s)
-%fa = linspace(5.3201e-04,0.9887,25);
-%N0=1;
-%E_s = 100;
+% This function provides the thresholding vector and the probability table
+% for MAP combiner
+%  Inputs to the function :
+%        fa : False alarm vector
+%        N0: Noise power
+%        E_s : Energy of the symbols
+% Outputs the function provides :
+%        th : Threshold for ED method based on the FA
+%        CW_p :Probability table for the MAP method
 gamma = E_s/N0;
 
 for i = 1:length(fa)
