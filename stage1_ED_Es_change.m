@@ -1,3 +1,14 @@
+% Cooperative Cognitive Radio Communication
+% MATLAB code for assignment in AET G641 @ BITS Pilani
+% Instructor: B. Sainath
+
+% Students:
+% Vandana Prasad - 2019H1240092P
+% Rushabha Balaji - 2017A3PS0220P
+% Vinay U Pai - 2017A3PS0131P
+
+% Function for Stage 1
+
 function [CW_State, CW] = stage1_ED_Es_change (nSU,nCodeword,nSamples,E_s,fa)
 
 %CW_State is the ground truth (1s mean active, 0s mean idle)

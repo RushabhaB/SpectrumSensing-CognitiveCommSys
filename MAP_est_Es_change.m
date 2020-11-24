@@ -1,3 +1,14 @@
+% Cooperative Cognitive Radio Communication
+% MATLAB code for assignment in AET G641 @ BITS Pilani
+% Instructor: B. Sainath
+
+% Students:
+% Vandana Prasad - 2019H1240092P
+% Rushabha Balaji - 2017A3PS0220P
+% Vinay U Pai - 2017A3PS0131P
+
+% Function for MAP combining
+
 function [th,CW_p] = MAP_est_Es_change(fa,N0,E_s)
 
 
