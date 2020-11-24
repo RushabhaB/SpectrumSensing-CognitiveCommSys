@@ -11,9 +11,11 @@
 clc;
 clear all;
 
+%Reference: "Cooperative Spectrum Sensing Using Maximum a Posteriori 
+%as a Detection Technique for Dynamic Spectrum Access Networks,"
+
 %Assumptions :
 %Number of Secondary Users (SU) : 3
-%SNR = 20dB for all signals from SU -> FC
 %Rayleigh flat fading channel
 
 % This file generates the plots for Pfa,Pmd and Pd for MMSE and LS

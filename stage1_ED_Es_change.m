@@ -8,6 +8,8 @@
 % Vinay U Pai - 2017A3PS0131P
 
 % Function for Stage 1
+% Refer to stage1_ED.m for functionality
+% Only change is that E_s is being varied while Pfa is constant
 
 function [CW_State, CW] = stage1_ED_Es_change (nSU,nCodeword,nSamples,E_s,fa)
 

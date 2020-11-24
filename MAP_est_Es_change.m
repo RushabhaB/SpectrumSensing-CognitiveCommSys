@@ -8,6 +8,8 @@
 % Vinay U Pai - 2017A3PS0131P
 
 % Function for MAP combining
+% Refer MAP_est.m for funtionality , the only change is E_s is being varied
+% instead of local Pfa.
 
 function [th,CW_p] = MAP_est_Es_change(fa,N0,E_s)
 
