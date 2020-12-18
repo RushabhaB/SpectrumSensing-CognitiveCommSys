@@ -7,8 +7,8 @@ The entire project has been implemented in MATLAB. To run all the codes, the fol
 Communication Toolbox
 ```
 
-The project builds upon the work by 
-*[1] AHMED TOHAMY, USAMA SAYED MOHAMED,
+The project builds upon the work by : \
+>*[1] AHMED TOHAMY, USAMA SAYED MOHAMED,
 MOHAMMAD M. ABDELLATIF, TAHA A. KHALAF1 AND MOHAMED ABDELRAHEEM Cooperative Spectrum Sensing Using Maximum a
 Posteriori as a Detection Technique for Dynamic Spectrum Access Networks*
 
