@@ -7,11 +7,14 @@ The entire project has been implemented in MATLAB. To run all the codes, the fol
 Communication Toolbox
 ```
 
-The project builds upon the work by : \
->*[1] AHMED TOHAMY, USAMA SAYED MOHAMED,
-MOHAMMAD M. ABDELLATIF, TAHA A. KHALAF1 AND MOHAMED ABDELRAHEEM Cooperative Spectrum Sensing Using Maximum a
-Posteriori as a Detection Technique for Dynamic Spectrum Access Networks*
+The project builds upon the work by : 
+>[1] *Ahmed Tohamy, Usama Sayed Mohamed,
+Mohammed M. Abdellatif, Taha A. Khalaf, Mohamed Abdeleraheem* **Cooperative Spectrum Sensing Using Maximum a
+Posteriori as a Detection Technique for Dynamic Spectrum Access Networks**
 
 We introduce the problems of channel estimation in [1] and see the impact of non-ideal CSI on the results for the proposed MAP (Maximum A Posteriori) combiner as well 
 as the Majority combiner which is implemented in the fusion center.
+
+### Running the code 
+The two stages of detection are implemented in `stage1_ED.m` and `fusion_center.m`. The latter is the *main* file which calls all the functions and generates all the plots for false alarm ($P_{FA}$) and misdetection ($P_{MD}$).
 
