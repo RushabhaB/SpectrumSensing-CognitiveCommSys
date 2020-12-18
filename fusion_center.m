@@ -46,7 +46,7 @@ iter = 5; % 5 for quick testing of the main but we ran it for 5000 iter
 for r=1:iter
 r  % To display in the command window which iteration it is on
 
-% Initialising the all the storage vectors
+% Initialising all the storage vectors
 
 % Majority combiner arrays
 p_md_arr = [];
@@ -67,10 +67,10 @@ p_fa_ideal_arr =[];
 
 for k=1:length(fa)                                         % For each local Pfa the system is run
 [x,x_det] = stage1_ED (nSU,nCodeWords,nSamples,E_s,fa(k)); % Energy detection at each SU
-CW = x;                                                    % Actual status of the PU at each time instant
-CW_detSU = x_det';                                         % Status detected by each SU at each time instant
+CW = x;                                                    % Actual status of the PU at each time instant (1 x nCodeWords)
+CW_detSU = x_det';                                         % Status detected by each SU at each time instant (nSU x nCodeWords)
 
-%Initialising the detected CW vectors at PU for each method
+%Initialising the detected PU status for each time instant for each estimation method
 CW_ideal = ones(size(CW));
 CW_LS = ones(size(CW));
 CW_mmse = ones(size(CW));
@@ -86,10 +86,11 @@ end
 
 % Channel Matrix of Rayleigh Fading Coefficients 
 % Defined only at the pilot samples since we assume that the channel
-% remains constant in the time instance between the pilot samples
+% remains constant in the time instance between the pilot samples size =(nSU x len(pilot_loc))
 H=(randn([nSU ceil(nCodeWords/(nSamples+1))])+1j*randn([nSU ceil(nCodeWords/(nSamples+1))]))/sqrt(2); 
 
-% Gaussian noise : Noise vector of CSCG noise for SU
+% Gaussian noise : Noise vector of CSCG noise for each SU fo each time
+% instant size = (nSU x nCodeWords)
 W=sqrt(N0)*(randn([nSU nCodeWords])+randn([nSU nCodeWords])*1j)/sqrt(2);
 
 % Begin estimation at the instants where the pilots are present
@@ -110,7 +111,7 @@ H_mmse_p(:,ceil(i/(nSamples+1))) = conj(u).*Y_p; %Standard formula
 end
 
 % Use the estimated channel at each packet to determine the data symbols
-% For all the SUS
+% For all the SUs
 for i = 1:nSamples+1:nCodeWords
 for j = i+1:i+nSamples
 
@@ -121,10 +122,10 @@ X_b = diag(xb);                      % Generating the symbol matrix with the dia
 Y_b = X_b*H(:,ceil(i/(nSamples+1))) + W(:,j); % Output CodeWord at the Fusion Centre (FC)
 
 % Using Ideal Channel
-% Detecting the received bits from the ZF equalisation (LS) of received vector
+% Detecting the received bits from the ZF equalisation  of received vector
 xb_det_ideal = inv(diag(H(:,ceil(i/(nSamples+1)))))*Y_b;
 % Hard thrsholding based demodulation
-m_det_ideal =  bpsk_demod(xb_det_ideal);
+m_det_ideal =  bpsk_demod(xb_det_ideal); % Detected status of PU using ideal channel (1xnSU)
 
 % Using LS estimated channel
 xb_det = inv(diag(H_LS_p(:,ceil(i/(nSamples+1)))))*Y_b;
@@ -221,23 +222,35 @@ p_fa_MAP_mmse_arr = [p_fa_MAP_mmse_arr p_fa_MAP_mmse];
 end
 
 % Storing the arrays for each iteration
+
+% Majority Combiner : Different channel estimators
+% Ideal
 p_md_ideal_array(r,:) = p_md_ideal_arr;
 p_fa_ideal_array(r,:) = p_fa_ideal_arr;
 
+% LS
 p_md_LS_array(r,:) = p_md_arr;
 p_fa_LS_array(r,:) = p_fa_arr;
 
+% MMSE
 p_md_mmse_array(r,:) = p_md_mmse_arr;
 p_fa_mmse_array(r,:) = p_fa_mmse_arr;
 
+% MAP Combiner : Different channel estimators
+% Ideal
 p_md_MAP_ideal_array(r,:) = p_md_MAP_ideal_arr;
 p_fa_MAP_ideal_array(r,:) = p_fa_MAP_ideal_arr;
+
+% LS
 p_md_MAP_LS_array(r,:) = p_md_MAP_LS_arr;
 p_fa_MAP_LS_array(r,:) = p_fa_MAP_LS_arr;
+
+% MMSE
 p_md_MAP_mmse_array(r,:) = p_md_MAP_mmse_arr;
 p_fa_MAP_mmse_array(r,:) = p_fa_MAP_mmse_arr;
 
 end
+
 % Taking the mean value across all the iterations
 p_md_ideal_final = mean(p_md_ideal_array);
 p_fa_ideal_final = mean(p_fa_ideal_array);
