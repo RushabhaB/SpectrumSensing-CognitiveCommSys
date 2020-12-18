@@ -18,3 +18,15 @@ as the Majority combiner which is implemented in the fusion center.
 ### Running the code 
 The two stages of detection are implemented in `stage1_ED.m` and `fusion_center.m`. The latter is the *main* file which calls all the functions and generates all the plots for false alarm ($P_{FA}$) and misdetection ($P_{MD}$).
 
+### Credits
+The contributors for this project are as follows :
+
+###### Mentor :
+
+Dr. Sainath Bitragunta (sainath.bitragunta@pilani.bits-pilani.ac.in)
+
+###### Members :
+
+1. Vinay U Pai (f20170131@pilani.bits-pilani.ac.in)
+1. Vandana Prasad (h20190092@pilani.bits-pilani.ac.in)
+1. Rushabha B (f20170220@pilani.bits-pilani.ac.in)
