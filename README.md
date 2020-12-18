@@ -16,7 +16,7 @@ We introduce the problems of channel estimation in [1] and see the impact of non
 as the Majority combiner which is implemented in the fusion center.
 
 ### Running the code 
-The two stages of detection are implemented in `stage1_ED.m` and `fusion_center.m`. The latter is the *main* file which calls all the functions and generates all the plots for false alarm ($P_{FA}$) and misdetection ($P_{MD}$).
+The two stages of detection are implemented in `stage1_ED.m` and `fusion_center.m`. The latter is the *main* file which calls all the functions and generates all the plots for false alarm <img src="https://render.githubusercontent.com/render/math?math=P_{FA}"> and misdetection <img src="https://render.githubusercontent.com/render/math?math=P_{MD}">.
 
 ### Credits
 The contributors for this project are as follows :
