@@ -34,7 +34,7 @@ power_noise_ratio = 10.^(power_noise_ratio_db/10); % In linear scale
 E_s = power_noise_ratio.*N0; % Signal power
 
 fa = 0.05; % Desired local SU P_fa
-[th,CW_p] = MAP_est_Es_change(fa,N0,E_s); % Get threshold and probabliity map for each codeword
+[th,CW_p] = MAP_est_Es_change(fa,N0,E_s,nSU); % Get threshold and probabliity map for each codeword
 
 
 iter = 5000; %Number of MC simulations

@@ -25,7 +25,7 @@ clear all;
 
 % BPSK modulation
 bpsk_demod = comm.BPSKDemodulator;% Creating the bpsk demodulator object
-nSU = 3;                          % Number of Secondary Users 
+nSU = 10;                          % Number of Secondary Users 
 M = 2;                            % BPSK modulation
 
 % Local SU System Config
@@ -39,7 +39,7 @@ fa = linspace(5.3201e-04,0.9887,25); % Local Pfa vector based on th given in the
 
 % Generating the threshold vector based on Pfa and the proability map of
 % the MAP scheme based on nSUs 
-[th,CW_p] = MAP_est(fa,N0,E_s,h_gain);
+[th,CW_p] = MAP_est(fa,N0,E_s,h_gain,nSU);
 
 % Number of iterations the entire process runs to average out the results
 iter = 5; % 5 for quick testing of the main but we ran it for 5000 iter
