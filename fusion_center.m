@@ -30,7 +30,7 @@ M = 2;                            % BPSK modulation
 
 % Local SU System Config
 E_s = 10;           % Symbol Energy
-N0 = 10;             % Noise power
+N0 = 100;             % Noise power
 h_gain = 10;         % Average channel power gain
 nCodeWords = 1000;   % Number of CodeWords
 nSamples = 4 ;       % Number of samples across which we assume the H_coeff to be constant

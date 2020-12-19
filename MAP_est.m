@@ -9,7 +9,7 @@ function [th,CW_p] = MAP_est(fa,N0,E_s,h_gain)
 % Outputs the function provides :
 %        th : Threshold for ED method based on the FA
 %        CW_p :Probability table for the MAP method
-gamma = h_gain*E_s/N0;
+gamma = E_s/N0;
 
 for i = 1:length(fa)
 %Reference: "Cooperative Spectrum Sensing Using Maximum a Posteriori 
