@@ -27,14 +27,10 @@ Paf = 1-Pfa;
 %CW_p(i,:,:) = [Pd^3, Pd^2*Pmd,Pd^2*Pmd,Pd^2*Pmd,Pd*Pmd^2,Pd*Pmd^2,Pd*Pmd^2,Pmd^3;Pfa^3,Pfa*Paf^2,...
 %    Pfa*Paf^2,Pfa*Paf^2,Pfa^2*Paf,Pfa^2*Paf,Pfa^2*Paf,Paf^3]; % Probabilities of each CW. Reference Table 2.
 
-CW_p(i,1,1) = Pd^nSU;
-CW_p(i,2,1) = Pfa^nSU;
-CW_p(i,1,end) = Pmd^nSU;
-CW_p(i,2,end) = Paf^nSU;
-init = 2;
+init = 1;
 len1 = 0;
 
-for j=1:(nSU-1)
+for j=0:nSU
     len2 = nchoosek(nSU,j)-1;
     init = init +len1;
     CW_p(i,1,init:init+len2)=repmat(Pmd^j*Pd^(nSU-j),nchoosek(nSU,j),1)';
