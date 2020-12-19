@@ -29,8 +29,9 @@ nSU = 3;                          % Number of Secondary Users
 M = 2;                            % BPSK modulation
 
 % Local SU System Config
-E_s = 100;           % Symbol Energy
+E_s = 10;           % Symbol Energy
 N0 = 10;             % Noise power
+h_gain = 10;         % Average channel power gain
 nCodeWords = 1000;   % Number of CodeWords
 nSamples = 4 ;       % Number of samples across which we assume the H_coeff to be constant
 m_p = ones([nSU 1]); % Pilot bits
@@ -38,7 +39,7 @@ fa = linspace(5.3201e-04,0.9887,25); % Local Pfa vector based on th given in the
 
 % Generating the threshold vector based on Pfa and the proability map of
 % the MAP scheme based on nSUs 
-[th,CW_p] = MAP_est(fa,N0,E_s);
+[th,CW_p] = MAP_est(fa,N0,E_s,h_gain);
 
 % Number of iterations the entire process runs to average out the results
 iter = 5; % 5 for quick testing of the main but we ran it for 5000 iter
@@ -66,7 +67,7 @@ p_fa_ideal_arr =[];
 % End initialisation
 
 for k=1:length(fa)                                         % For each local Pfa the system is run
-[x,x_det] = stage1_ED (nSU,nCodeWords,nSamples,E_s,fa(k)); % Energy detection at each SU
+[x,x_det] = stage1_ED (nSU,nCodeWords,nSamples,E_s,N0,h_gain,fa(k)); % Energy detection at each SU
 CW = x;                                                    % Actual status of the PU at each time instant (1 x nCodeWords)
 CW_detSU = x_det';                                         % Status detected by each SU at each time instant (nSU x nCodeWords)
 
@@ -87,7 +88,7 @@ end
 % Channel Matrix of Rayleigh Fading Coefficients 
 % Defined only at the pilot samples since we assume that the channel
 % remains constant in the time instance between the pilot samples size =(nSU x len(pilot_loc))
-H=(randn([nSU ceil(nCodeWords/(nSamples+1))])+1j*randn([nSU ceil(nCodeWords/(nSamples+1))]))/sqrt(2); 
+H=(sqrt(h_gain))*(randn([nSU ceil(nCodeWords/(nSamples+1))])+1j*randn([nSU ceil(nCodeWords/(nSamples+1))]))/sqrt(2); 
 
 % Gaussian noise : Noise vector of CSCG noise for each SU fo each time
 % instant size = (nSU x nCodeWords)
@@ -106,7 +107,7 @@ Y_p = X_p*H(:,ceil(i/(nSamples+1))) + W(:,i); % Output symbols at the Fusion Cen
 H_LS_p(:,ceil(i/(nSamples+1))) = inv(X_p*X_p')*X_p'*Y_p; %MISO Least Square detection using pilots
 
 % MMSE
-u = (1./(E_s + N0)).*x_p; %E[h^2] is 2 sigma^2 i.e 2*1/2 = 1. Also ||x||^2 is E_s
+u = (h_gain./(E_s*h_gain + N0)).*x_p; %E[h^2] is 2 sigma^2 i.e 2*1/2 = 1. Also ||x||^2 is E_s
 H_mmse_p(:,ceil(i/(nSamples+1))) = conj(u).*Y_p; %Standard formula
 end
 

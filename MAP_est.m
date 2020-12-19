@@ -1,14 +1,15 @@
-function [th,CW_p] = MAP_est(fa,N0,E_s)
+function [th,CW_p] = MAP_est(fa,N0,E_s,h_gain)
 % This function provides the thresholding vector and the probability table
 % for MAP combiner
 %  Inputs to the function :
 %        fa : False alarm vector
 %        N0: Noise power
 %        E_s : Energy of the symbols
+%        h_gain: Channel power gain
 % Outputs the function provides :
 %        th : Threshold for ED method based on the FA
 %        CW_p :Probability table for the MAP method
-gamma = E_s/N0;
+gamma = h_gain*E_s/N0;
 
 for i = 1:length(fa)
 %Reference: "Cooperative Spectrum Sensing Using Maximum a Posteriori 
