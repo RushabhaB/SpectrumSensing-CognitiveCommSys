@@ -283,7 +283,8 @@ p_fa_MAP_mmse_final = mean(p_fa_MAP_mmse_array);
  xlabel('Threshold(W)','FontSize',12,'FontWeight','bold','Color','k','Fontname', 'Arial','Interpreter', 'latex')
  ylabel('Probablity of detection ($P_d$)','FontSize',12,'FontWeight','bold','Color','k','Fontname', 'Arial','Interpreter', 'latex')
  legend('Majority Combiner', 'MAP Combiner','Location','southwest','FontSize',10,'Fontname','Arial','Interpreter','latex');
-
+ ylim([0 1]);
+ 
  %MAP LS vs MMSE P_d
  figure(2)
  grid on
@@ -297,7 +298,8 @@ p_fa_MAP_mmse_final = mean(p_fa_MAP_mmse_array);
  ylabel('Probablity of detection ($P_d$)','FontSize',12,'FontWeight','bold','Color','k','Fontname', 'Arial','Interpreter', 'latex')
  legend('LS Estimate', 'MMSE Estimate','Ideal','Location','southwest','FontSize',10,'Fontname','Arial','Interpreter','latex');
  title('MAP combiner','FontSize',12,'FontWeight','bold','Color','k','Fontname', 'Arial','Interpreter', 'latex')
-
+ ylim([0 1]);
+ 
  %MAP LS vs MMSE P_fa
  figure(3)
  grid on
@@ -310,7 +312,7 @@ p_fa_MAP_mmse_final = mean(p_fa_MAP_mmse_array);
  ylabel('Probablity of false alarm ($P_{fa}$)','FontSize',12,'FontWeight','bold','Color','k','Fontname', 'Arial','Interpreter', 'latex')
  legend('LS Estimate', 'MMSE Estimate','Ideal','Location','southwest','FontSize',10,'Fontname','Arial','Interpreter','latex');
  title('MAP combiner','FontSize',12,'FontWeight','bold','Color','k','Fontname', 'Arial','Interpreter', 'latex')
- 
+ ylim([0 1]);
  
  %Majority LS vs MMSE P_d
  figure(4)
@@ -325,7 +327,8 @@ p_fa_MAP_mmse_final = mean(p_fa_MAP_mmse_array);
  ylabel('Probablity of detection ($P_d$)','FontSize',12,'FontWeight','bold','Color','k','Fontname', 'Arial','Interpreter', 'latex')
  legend('LS Estimate', 'MMSE Estimate','Ideal','Location','southwest','FontSize',10,'Fontname','Arial','Interpreter','latex');
  title('Majority combiner','FontSize',12,'FontWeight','bold','Color','k','Fontname', 'Arial','Interpreter', 'latex')
-
+ ylim([0 1]);
+ 
  %Majority LS vs MMSE P_fa
  figure(5)
  grid on
@@ -339,14 +342,13 @@ p_fa_MAP_mmse_final = mean(p_fa_MAP_mmse_array);
  ylabel('Probablity of false alarm ($P_{fa}$)','FontSize',12,'FontWeight','bold','Color','k','Fontname', 'Arial','Interpreter', 'latex')
  legend('LS Estimate', 'MMSE Estimate','Ideal','Location','southwest','FontSize',10,'Fontname','Arial','Interpreter','latex');
  title('Majority combiner','FontSize',12,'FontWeight','bold','Color','k','Fontname', 'Arial','Interpreter', 'latex')
- 
-
+ ylim([0 1]);
  
  % Majority MD vs FA
  figure(6)
  grid on 
  hold all
- plot(fa,p_md_LS_final,'k-d','LineWidth',2);
+ plot(fa,p_md_LS_final,'k-o','LineWidth',2);
  hold on
  plot(fa,p_md_mmse_final,'r-+','LineWidth',2);
  hold on
@@ -356,7 +358,7 @@ p_fa_MAP_mmse_final = mean(p_fa_MAP_mmse_array);
  ylabel('Probablity of misdetection ($P_{md}$)','FontSize',12,'FontWeight','bold','Color','k','Fontname', 'Arial','Interpreter', 'latex')
  legend('LS Estimate', 'MMSE Estimate','Ideal','Location','northwest','FontSize',10,'Fontname','Arial','Interpreter','latex');
  title('Majority combiner','FontSize',12,'FontWeight','bold','Color','k','Fontname', 'Arial','Interpreter', 'latex')
- 
+ ylim([0 1]);
 
  % MAP MD vs FA
  figure(7)
@@ -372,9 +374,8 @@ p_fa_MAP_mmse_final = mean(p_fa_MAP_mmse_array);
  ylabel('Probablity of misdetection ($P_{md}$)','FontSize',12,'FontWeight','bold','Color','k','Fontname', 'Arial','Interpreter', 'latex')
  legend('LS Estimate', 'MMSE Estimate','Ideal','Location','northeast','FontSize',10,'Fontname','Arial','Interpreter','latex');
  title('MAP combiner','FontSize',12,'FontWeight','bold','Color','k','Fontname', 'Arial','Interpreter', 'latex')
- 
+ ylim([0 1]);
 
- 
  
 %  figure(5)
 %  grid on
