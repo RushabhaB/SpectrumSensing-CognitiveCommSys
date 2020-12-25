@@ -22,6 +22,7 @@ bpsk_demod = comm.BPSKDemodulator; %Creating the bpsk demodulator object
 
 nSU = 3; % Number of Secondary Users (Keep this as 3 to get meaning ful MAP results)
 M = 2; %BPSK modulation
+h_gain = 1;
 
 %System Config
 N0 = 10;  % Noise power
@@ -37,7 +38,7 @@ fa = 0.05; % Desired local SU P_fa
 [th,CW_p] = MAP_est_Es_change(fa,N0,E_s,nSU); % Get threshold and probabliity map for each codeword
 
 
-iter = 5000; %Number of MC simulations
+iter = 5; %Number of MC simulations
 
 for r=1:iter
     r
@@ -259,10 +260,12 @@ p_fa_MAP_mmse_final = mean(p_fa_MAP_mmse_array);
  grid on
  plot(power_noise_ratio_db,(1-(p_md_MAP_LS_final)),'k-s','LineWidth',2);
  hold on
- plot(power_noise_ratio_db,(1-(p_md_MAP_mmse_final)),'r--','LineWidth',2);
+ plot(power_noise_ratio_db,(1-(p_md_MAP_mmse_final)),'r-o','LineWidth',2);
+ hold on
+ plot(power_noise_ratio_db,(1-(p_md_MAP_ideal_final)),'b-d','LineWidth',2);
  xlabel('$P/N_0$ (dB)','FontSize',12,'FontWeight','bold','Color','k','Fontname', 'Arial','Interpreter', 'latex')
  ylabel('Probablity of detection ($P_d$)','FontSize',12,'FontWeight','bold','Color','k','Fontname', 'Arial','Interpreter', 'latex')
- legend('LS Estimate', 'MMSE Estimate','Location','northwest','FontSize',10,'Fontname','Arial','Interpreter','latex');
+ legend('LS Estimate', 'MMSE Estimate','Ideal','Location','northwest','FontSize',10,'Fontname','Arial','Interpreter','latex');
  title('MAP combiner','FontSize',12,'FontWeight','bold','Color','k','Fontname', 'Arial','Interpreter', 'latex')
 
   %Majority LS vs MMSE P_fa
@@ -270,21 +273,26 @@ p_fa_MAP_mmse_final = mean(p_fa_MAP_mmse_array);
  grid on
  plot(power_noise_ratio_db,p_fa_LS_final,'k-s','LineWidth',2);
  hold on
- plot(power_noise_ratio_db,p_fa_mmse_final,'r--','LineWidth',2);
+ plot(power_noise_ratio_db,p_fa_mmse_final,'r-o','LineWidth',2);
+ hold on
+ plot(power_noise_ratio_db,p_fa_ideal_final,'b-d','LineWidth',2);
  xlabel('$P/N_0$ (dB)','FontSize',12,'FontWeight','bold','Color','k','Fontname', 'Arial','Interpreter', 'latex')
  ylabel('Probablity of false alarm ($P_{fa}$)','FontSize',12,'FontWeight','bold','Color','k','Fontname', 'Arial','Interpreter', 'latex')
- legend('LS Estimate', 'MMSE Estimate','Location','northwest','FontSize',10,'Fontname','Arial','Interpreter','latex');
+ legend('LS Estimate', 'MMSE Estimate','Ideal','Location','northwest','FontSize',10,'Fontname','Arial','Interpreter','latex');
  title('Majority combiner','FontSize',12,'FontWeight','bold','Color','k','Fontname', 'Arial','Interpreter', 'latex')
   
  %Majority LS vs MMSE P_d
  figure(4)
-grid on
+ grid on
  plot(power_noise_ratio_db,(1-(p_md_LS_final)),'k-s','LineWidth',2);
  hold on
- plot(power_noise_ratio_db,(1-(p_md_mmse_final)),'r--','LineWidth',2);
+ plot(power_noise_ratio_db,(1-(p_md_mmse_final)),'r-o','LineWidth',2);
+ hold on
+ plot(power_noise_ratio_db,(1-(p_md_ideal_final)),'b-d','LineWidth',2);
+ hold on
  xlabel('$P/N_0$ (dB)','FontSize',12,'FontWeight','bold','Color','k','Fontname', 'Arial','Interpreter', 'latex')
  ylabel('Probablity of detection ($P_d$)','FontSize',12,'FontWeight','bold','Color','k','Fontname', 'Arial','Interpreter', 'latex')
- legend('LS Estimate', 'MMSE Estimate','Location','southeast','FontSize',10,'Fontname','Arial','Interpreter','latex');
+ legend('LS Estimate', 'MMSE Estimate','Ideal','Location','southeast','FontSize',10,'Fontname','Arial','Interpreter','latex');
  title('Majority combiner','FontSize',12,'FontWeight','bold','Color','k','Fontname', 'Arial','Interpreter', 'latex')
 
  

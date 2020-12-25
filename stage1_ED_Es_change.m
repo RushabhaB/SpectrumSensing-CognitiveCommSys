@@ -62,7 +62,7 @@ for k=1:nSU % Number of SUs
     energy_fin_1(k,:) =sum(energy(k,:)); % Test Statistic for the energy detection 
 end
 
-    detect = ((energy_fin_1/10) >= th); % Checking whether the received energy is above the threshold
+    detect = ((energy_fin_1/L) >= th); % Checking whether the received energy is above the threshold
     CW(i,:)=double(detect); % Convert all above threshold to 1 and below to 0
     
 
