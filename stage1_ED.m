@@ -1,4 +1,4 @@
-function [CW_State, CW] = stage1_ED (nSU,nCodeword,nSamples,E_s,N0,h_gain,fa)
+function [CW_State, CW] = stage1_ED (nSU,nCodeword,nSamples,E_s,N0,h_gain,th)
 
 % This function provides the results of the status of the PU from all the
 % SUs based on the Energy Detection (ED) technique.
@@ -24,20 +24,20 @@ iter =10^5; % Number of iterations
 
 E_p_l = E_s; % SNR in linear scale
 
-th = (qfuncinv(fa/2))^2*(N0/2);
+%th = (qfuncinv(fa/2))^2*(N0/2);
 
 for i = 1:length(CW_State)
 
-for t = 1:length(fa)
+for t = 1:length(th)
     s = [];  
     h = [];
     mes = randi([0 1],nSU,L); % Generating 0 and 1 with equal probability for BPSK
-    n =sqrt(N0)*randn(nSU,L); % Gaussian noise, mean 0, variance 1
+    n =sqrt(N0').*randn(nSU,L); % Gaussian noise, mean 0, variance 1
     s = (2.*(mes)-1); % BPSK modulation
     h1 = (h_gain)*(randn(nSU,1)+1i*randn(nSU,1))./(sqrt(2)); % Generating Rayleigh channel coefficients
     h = repmat(h1,1,L); % Slow-fading
     if (CW_State(i) ==1)
-        y = sqrt(E_p_l).*abs(h).*s + n; % Received signal y at the secondary user, abs(h) is the Rayleigh channel gain.
+        y = sqrt(E_p_l)'.*abs(h).*s + n; % Received signal y at the secondary user, abs(h) is the Rayleigh channel gain.
     else
         y = n;
     end

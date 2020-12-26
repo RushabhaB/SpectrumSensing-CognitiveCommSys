@@ -30,19 +30,21 @@ M = 2;                            % BPSK modulation
 
 % Local SU System Config
 E_s = 100;           % Symbol Energy
+E_p = [10^(15/10),10^(17/10),10^(19/10)];
+N0_p = [10^(7/10),10^(8/10),10^(5/10)];
 N0 = 10;             % Noise power
 h_gain = 1;         % Average channel power gain
 nCodeWords = 1000;   % Number of CodeWords
 nSamples = 4 ;       % Number of samples across which we assume the H_coeff to be constant
 m_p = ones([nSU 1]); % Pilot bits
-fa = linspace(5.3201e-04,0.9887,25); % Local Pfa vector based on th given in the paper
+th = linspace(10e-04,50,30); % Local Pfa vector based on th given in the paper
 
 % Generating the threshold vector based on Pfa and the proability map of
 % the MAP scheme based on nSUs 
-[th,CW_p] = MAP_est(fa,N0,E_s,h_gain,nSU);
+[th,CW_p] = MAP_est(th,N0_p,E_p,h_gain,nSU);
 
 % Number of iterations the entire process runs to average out the results
-iter = 5; % 5 for quick testing of the main but we ran it for 5000 iter
+iter = 10; % 5 for quick testing of the main but we ran it for 5000 iter
 
 for r=1:iter
 r  % To display in the command window which iteration it is on
@@ -66,8 +68,8 @@ p_md_ideal_arr=[];
 p_fa_ideal_arr =[];
 % End initialisation
 
-for k=1:length(fa)                                         % For each local Pfa the system is run
-[x,x_det] = stage1_ED (nSU,nCodeWords,nSamples,E_s,N0,h_gain,fa(k)); % Energy detection at each SU
+for k=1:length(th)                                         % For each local Pfa the system is run
+[x,x_det] = stage1_ED (nSU,nCodeWords,nSamples,E_p,N0_p,h_gain,th(k)); % Energy detection at each SU
 CW = x;                                                    % Actual status of the PU at each time instant (1 x nCodeWords)
 CW_detSU = x_det';                                         % Status detected by each SU at each time instant (nSU x nCodeWords)
 
@@ -283,7 +285,7 @@ p_fa_MAP_mmse_final = mean(p_fa_MAP_mmse_array);
  xlabel('Threshold(W)','FontSize',12,'FontWeight','bold','Color','k','Fontname', 'Arial','Interpreter', 'latex')
  ylabel('Probablity of detection ($P_d$)','FontSize',12,'FontWeight','bold','Color','k','Fontname', 'Arial','Interpreter', 'latex')
  legend('Majority Combiner', 'MAP Combiner','Location','southwest','FontSize',10,'Fontname','Arial','Interpreter','latex');
- ylim([0 1]);
+% ylim([0 1]);
  
  %MAP LS vs MMSE P_d
  figure(2)
@@ -298,7 +300,7 @@ p_fa_MAP_mmse_final = mean(p_fa_MAP_mmse_array);
  ylabel('Probablity of detection ($P_d$)','FontSize',12,'FontWeight','bold','Color','k','Fontname', 'Arial','Interpreter', 'latex')
  legend('LS Estimate', 'MMSE Estimate','Ideal','Location','southwest','FontSize',10,'Fontname','Arial','Interpreter','latex');
  title('MAP combiner','FontSize',12,'FontWeight','bold','Color','k','Fontname', 'Arial','Interpreter', 'latex')
- ylim([0 1]);
+ %ylim([0 1]);
  
  %MAP LS vs MMSE P_fa
  figure(3)
@@ -312,16 +314,16 @@ p_fa_MAP_mmse_final = mean(p_fa_MAP_mmse_array);
  ylabel('Probablity of false alarm ($P_{fa}$)','FontSize',12,'FontWeight','bold','Color','k','Fontname', 'Arial','Interpreter', 'latex')
  legend('LS Estimate', 'MMSE Estimate','Ideal','Location','southwest','FontSize',10,'Fontname','Arial','Interpreter','latex');
  title('MAP combiner','FontSize',12,'FontWeight','bold','Color','k','Fontname', 'Arial','Interpreter', 'latex')
- ylim([0 1]);
+% ylim([0 1]);
  
  %Majority LS vs MMSE P_d
  figure(4)
  grid on
- semilogx(flip(th(5:end)),flip(1-(p_md_LS_final(5:end))),'k-s','LineWidth',2);
+ semilogx(flip(th),flip(1-(p_md_LS_final)),'k-s','LineWidth',2);
  hold on
- semilogx(flip(th(5:end)),flip(1-(p_md_mmse_final(5:end))),'r-+','LineWidth',2);
+ semilogx(flip(th),flip(1-(p_md_mmse_final)),'r-+','LineWidth',2);
  hold on
- semilogx(flip(th(5:end)),flip(1-(p_md_ideal_final(5:end))),'b-d','LineWidth',2);
+ semilogx(flip(th),flip(1-(p_md_ideal_final)),'b-d','LineWidth',2);
  hold on
  xlabel('Threshold(W)','FontSize',12,'FontWeight','bold','Color','k','Fontname', 'Arial','Interpreter', 'latex')
  ylabel('Probablity of detection ($P_d$)','FontSize',12,'FontWeight','bold','Color','k','Fontname', 'Arial','Interpreter', 'latex')
@@ -345,36 +347,36 @@ p_fa_MAP_mmse_final = mean(p_fa_MAP_mmse_array);
  %ylim([0 1]);
  
  % Majority MD vs FA
- figure(6)
- grid on 
- hold all
- plot(fa,p_md_LS_final,'k-o','LineWidth',2);
- hold on
- plot(fa,p_md_mmse_final,'r-+','LineWidth',2);
- hold on
- plot(fa,p_md_ideal_final,'b-d','LineWidth',2);
- hold on
- xlabel('Probablity of local SU false alarm ($P_{fa}$)','FontSize',12,'FontWeight','bold','Color','k','Fontname', 'Arial','Interpreter', 'latex')
- ylabel('Probablity of misdetection ($P_{md}$)','FontSize',12,'FontWeight','bold','Color','k','Fontname', 'Arial','Interpreter', 'latex')
- legend('LS Estimate', 'MMSE Estimate','Ideal','Location','northwest','FontSize',10,'Fontname','Arial','Interpreter','latex');
- title('Majority combiner','FontSize',12,'FontWeight','bold','Color','k','Fontname', 'Arial','Interpreter', 'latex')
- %ylim([0 1]);
+%  figure(6)
+%  grid on 
+%  hold all
+%  plot(fa,p_md_LS_final,'k-o','LineWidth',2);
+%  hold on
+%  plot(fa,p_md_mmse_final,'r-+','LineWidth',2);
+%  hold on
+%  plot(fa,p_md_ideal_final,'b-d','LineWidth',2);
+%  hold on
+%  xlabel('Probablity of local SU false alarm ($P_{fa}$)','FontSize',12,'FontWeight','bold','Color','k','Fontname', 'Arial','Interpreter', 'latex')
+%  ylabel('Probablity of misdetection ($P_{md}$)','FontSize',12,'FontWeight','bold','Color','k','Fontname', 'Arial','Interpreter', 'latex')
+%  legend('LS Estimate', 'MMSE Estimate','Ideal','Location','northwest','FontSize',10,'Fontname','Arial','Interpreter','latex');
+%  title('Majority combiner','FontSize',12,'FontWeight','bold','Color','k','Fontname', 'Arial','Interpreter', 'latex')
+%  %ylim([0 1]);
 
  % MAP MD vs FA
- figure(7)
- grid on 
- hold all
- plot(fa,p_md_MAP_LS_final,'k-o','LineWidth',2);
- hold on
- plot(fa,p_md_MAP_mmse_final,'r-+','LineWidth',2);
- hold on
- plot(fa,p_md_MAP_ideal_final,'b-d','LineWidth',2);
- hold on
- xlabel('Probablity of local SU false alarm ($P_{fa}$)','FontSize',12,'FontWeight','bold','Color','k','Fontname', 'Arial','Interpreter', 'latex')
- ylabel('Probablity of misdetection ($P_{md}$)','FontSize',12,'FontWeight','bold','Color','k','Fontname', 'Arial','Interpreter', 'latex')
- legend('LS Estimate', 'MMSE Estimate','Ideal','Location','northeast','FontSize',10,'Fontname','Arial','Interpreter','latex');
- title('MAP combiner','FontSize',12,'FontWeight','bold','Color','k','Fontname', 'Arial','Interpreter', 'latex')
- ylim([0 1]);
+%  figure(7)
+%  grid on 
+%  hold all
+%  plot(fa,p_md_MAP_LS_final,'k-o','LineWidth',2);
+%  hold on
+%  plot(fa,p_md_MAP_mmse_final,'r-+','LineWidth',2);
+%  hold on
+%  plot(fa,p_md_MAP_ideal_final,'b-d','LineWidth',2);
+%  hold on
+%  xlabel('Probablity of local SU false alarm ($P_{fa}$)','FontSize',12,'FontWeight','bold','Color','k','Fontname', 'Arial','Interpreter', 'latex')
+%  ylabel('Probablity of misdetection ($P_{md}$)','FontSize',12,'FontWeight','bold','Color','k','Fontname', 'Arial','Interpreter', 'latex')
+%  legend('LS Estimate', 'MMSE Estimate','Ideal','Location','northeast','FontSize',10,'Fontname','Arial','Interpreter','latex');
+%  title('MAP combiner','FontSize',12,'FontWeight','bold','Color','k','Fontname', 'Arial','Interpreter', 'latex')
+%  ylim([0 1]);
 
  
 %  figure(5)
