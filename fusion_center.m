@@ -30,21 +30,24 @@ M = 2;                            % BPSK modulation
 
 % Local SU System Config
 E_s = 100;           % Symbol Energy
-E_p = [10^(15/10),10^(17/10),10^(19/10)];
-N0_p = [10^(7/10),10^(8/10),10^(5/10)];
+E_p = [100,100,100]; 
+N0_p = E_s*[10^(-13/10),10^(-15/10),10^(-17/10)]; % Noise power
 N0 = 10;             % Noise power
 h_gain = 1;         % Average channel power gain
 nCodeWords = 1000;   % Number of CodeWords
 nSamples = 4 ;       % Number of samples across which we assume the H_coeff to be constant
 m_p = ones([nSU 1]); % Pilot bits
 th = linspace(10e-04,50,30); % Local Pfa vector based on th given in the paper
-
 % Generating the threshold vector based on Pfa and the proability map of
 % the MAP scheme based on nSUs 
-[th,CW_p] = MAP_est(th,N0_p,E_p,h_gain,nSU);
+[th,CW_p] = MAP_est(th,N0_p,E_s,h_gain,nSU);
 
 % Number of iterations the entire process runs to average out the results
-iter = 10; % 5 for quick testing of the main but we ran it for 5000 iter
+iter = 5; % 5 for quick testing of the main but we ran it for 5000 iter
+
+% Initialising the modulated BPSK symbols for all codewords
+allCW = [1,1,1;1,1,0;1,0,1;1,0,0;0,1,1;0,1,0;0,0,1;0,0,0]'; 
+x_allCW = sqrt(E_s).*exp(-1i*pi*2*(allCW)/M);
 
 for r=1:iter
 r  % To display in the command window which iteration it is on
@@ -67,11 +70,10 @@ p_fa_MAP_mmse_arr = [];
 p_md_ideal_arr=[];
 p_fa_ideal_arr =[];
 % End initialisation
+CW_State = randi([0,1], [1,nCodeWords]);
 
 for k=1:length(th)                                         % For each local Pfa the system is run
-[x,x_det] = stage1_ED (nSU,nCodeWords,nSamples,E_p,N0_p,h_gain,th(k)); % Energy detection at each SU
-CW = x;                                                    % Actual status of the PU at each time instant (1 x nCodeWords)
-CW_detSU = x_det';                                         % Status detected by each SU at each time instant (nSU x nCodeWords)
+[CW,CW_detSU] = stage1_ED (nSU,CW_State,nSamples,E_s,N0_p,h_gain,th(k)); % Energy detection at each SU
 
 %Initialising the detected PU status for each time instant for each estimation method
 CW_ideal = ones(size(CW));
@@ -139,32 +141,39 @@ xb_det_mmse = inv(diag(H_mmse_p(:,ceil(i/(nSamples+1)))))*Y_b;
 m_det_mmse = bpsk_demod(xb_det_mmse);
 
 %Begin the MAP combiner algorithm
-% Ideal Channel combiner
-Ka_min = min(sum(abs(Y_b-X_b*H(:,ceil(i/(nSamples+1)))).^2) - N0 *log(CW_p(k,1,:)));
-Ki_min= min(sum(abs(Y_b-X_b*H(:,ceil(i/(nSamples+1)))).^2) - N0 *log(CW_p(k,2,:)));
+Ka_min=zeros(1,length(allCW));
+Ki_min=zeros(1,length(allCW));
+Ka_min_LS=zeros(1,length(allCW));
+Ki_min_LS=zeros(1,length(allCW));
+Ki_min_mmse=zeros(1,length(allCW));
+Ka_min_mmse=zeros(1,length(allCW));
+for q=1:length(allCW)
+    % Ideal Channel combiner
+    Ka_min(q) = sum(abs(Y_b-diag(x_allCW(:,q))*H(:,ceil(i/(nSamples+1)))).^2) - N0 *log(CW_p(1,q,k));
+    Ki_min(q)= sum(abs(Y_b-diag(x_allCW(:,q))*H(:,ceil(i/(nSamples+1)))).^2) - N0 *log(CW_p(2,q,k));
 
-% LS channel combiner
-Ka_min_LS = min(sum(abs(Y_b-X_b*H_LS_p(:,ceil(i/(nSamples+1)))).^2) - N0 *log(CW_p(k,1,:)));
-Ki_min_LS = min(sum(abs(Y_b-X_b*H_LS_p(:,ceil(i/(nSamples+1)))).^2) - N0 *log(CW_p(k,2,:)));
+    % LS channel combiner
+    Ka_min_LS(q) = sum(abs(Y_b-diag(x_allCW(:,q))*H_LS_p(:,ceil(i/(nSamples+1)))).^2) - N0 *log(CW_p(1,q,k));
+    Ki_min_LS(q) = sum(abs(Y_b-diag(x_allCW(:,q))*H_LS_p(:,ceil(i/(nSamples+1)))).^2) - N0 *log(CW_p(2,q,k));
 
-% MMSE channel combiner
-Ka_min_mmse = min(sum(abs(Y_b-X_b*H_mmse_p(:,ceil(i/(nSamples+1)))).^2) - N0 *log(CW_p(k,1,:)));
-Ki_min_mmse = min(sum(abs(Y_b-X_b*H_mmse_p(:,ceil(i/(nSamples+1)))).^2) - N0 *log(CW_p(k,2,:)));
-
+    % MMSE channel combiner
+    Ka_min_mmse(q) = sum(abs(Y_b-diag(x_allCW(:,q))*H_mmse_p(:,ceil(i/(nSamples+1)))).^2) - N0 *log(CW_p(1,q,k));
+    Ki_min_mmse(q) = sum(abs(Y_b-diag(x_allCW(:,q))*H_mmse_p(:,ceil(i/(nSamples+1)))).^2) - N0 *log(CW_p(2,q,k));
+end
 % Checking the PU status
-if (Ka_min < Ki_min)
+if (min(Ka_min) < min(Ki_min))
     CW_ideal(j) = 1;
 else
     CW_ideal(j) = 0;
 end
     
-if (Ka_min_LS < Ki_min_LS)
+if (min(Ka_min_LS) < min(Ki_min_LS))
     CW_LS(j) = 1;
 else
     CW_LS(j) = 0;
 end
 
-if (Ka_min_mmse < Ki_min_mmse)
+if (min(Ka_min_mmse) < min(Ki_min_mmse))
     CW_mmse(j) = 1;
 else
     CW_mmse(j) = 0;
