@@ -13,7 +13,7 @@
 
 function [th,CW_p] = MAP_est_Es_change(fa,N0,E_s,nSU)
 
-CW_p=ones(length(fa),2,2^(nSU));
+CW_p=ones(2,2^(nSU),length(fa));
 
 for i = 1:length(E_s)
 %Reference: "Cooperative Spectrum Sensing Using Maximum a Posteriori 
@@ -22,7 +22,7 @@ for i = 1:length(E_s)
 gamma = E_s(i)/N0; %SNR 
 th = (qfuncinv(fa/2))^2*(N0/2); % Threshold calculated from P_fa
 a= sqrt(th)/(sqrt(N0/2)*(1+sqrt(gamma))) ;
-Pd = gammainc(1,a,'upper'); % P_d calculated from Threshold
+Pd = gammainc(1,a,'lower'); % P_d calculated from Threshold
 Pmd=1-Pd; %P_md
 
 Pfa=fa;
@@ -37,8 +37,8 @@ len1 = 0;
 for j=0:nSU
     len2 = nchoosek(nSU,j)-1;
     init = init +len1;
-    CW_p(i,1,init:init+len2)=repmat(Pmd^j*Pd^(nSU-j),nchoosek(nSU,j),1)';
-    CW_p(i,2,init:init+len2)=repmat(Paf^j*Pfa^(nSU-j),nchoosek(nSU,j),1)';
+    CW_p(1,init:init+len2,i)=repmat(Pmd^j*Pd^(nSU-j),nchoosek(nSU,j),1)';
+    CW_p(2,init:init+len2,i)=repmat(Paf^j*Pfa^(nSU-j),nchoosek(nSU,j),1)';
     len1 = len2+1;
 end
 

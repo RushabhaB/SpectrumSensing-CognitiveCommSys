@@ -294,6 +294,7 @@ p_fa_MAP_mmse_final = mean(p_fa_MAP_mmse_array,1);
  xlabel('Threshold(W)','FontSize',12,'FontWeight','bold','Color','k','Fontname', 'Arial','Interpreter', 'latex')
  ylabel('Probablity of detection ($P_d$)','FontSize',12,'FontWeight','bold','Color','k','Fontname', 'Arial','Interpreter', 'latex')
  legend('Majority Combiner', 'MAP Combiner','Location','southwest','FontSize',10,'Fontname','Arial','Interpreter','latex');
+ grid on 
  ylim([0 1]);
  
  %MAP LS vs MMSE P_d
@@ -309,6 +310,7 @@ p_fa_MAP_mmse_final = mean(p_fa_MAP_mmse_array,1);
  ylabel('Probablity of detection ($P_d$)','FontSize',12,'FontWeight','bold','Color','k','Fontname', 'Arial','Interpreter', 'latex')
  legend('LS Estimate', 'MMSE Estimate','Ideal','Location','southwest','FontSize',10,'Fontname','Arial','Interpreter','latex');
  title('MAP combiner','FontSize',12,'FontWeight','bold','Color','k','Fontname', 'Arial','Interpreter', 'latex')
+ grid on 
  %ylim([0 1]);
  
  %MAP LS vs MMSE P_fa
@@ -323,7 +325,8 @@ p_fa_MAP_mmse_final = mean(p_fa_MAP_mmse_array,1);
  ylabel('Probablity of false alarm ($P_{fa}$)','FontSize',12,'FontWeight','bold','Color','k','Fontname', 'Arial','Interpreter', 'latex')
  legend('LS Estimate', 'MMSE Estimate','Ideal','Location','southwest','FontSize',10,'Fontname','Arial','Interpreter','latex');
  title('MAP combiner','FontSize',12,'FontWeight','bold','Color','k','Fontname', 'Arial','Interpreter', 'latex')
-% ylim([0 1]);
+ grid on
+ % ylim([0 1]);
  
  %Majority LS vs MMSE P_d
  figure(4)
@@ -338,6 +341,7 @@ p_fa_MAP_mmse_final = mean(p_fa_MAP_mmse_array,1);
  ylabel('Probablity of detection ($P_d$)','FontSize',12,'FontWeight','bold','Color','k','Fontname', 'Arial','Interpreter', 'latex')
  legend('LS Estimate', 'MMSE Estimate','Ideal','Location','southwest','FontSize',10,'Fontname','Arial','Interpreter','latex');
  title('Majority combiner','FontSize',12,'FontWeight','bold','Color','k','Fontname', 'Arial','Interpreter', 'latex')
+ grid on
  %ylim([0 1]);
  
  %Majority LS vs MMSE P_fa
@@ -353,6 +357,7 @@ p_fa_MAP_mmse_final = mean(p_fa_MAP_mmse_array,1);
  ylabel('Probablity of false alarm ($P_{fa}$)','FontSize',12,'FontWeight','bold','Color','k','Fontname', 'Arial','Interpreter', 'latex')
  legend('LS Estimate', 'MMSE Estimate','Ideal','Location','southwest','FontSize',10,'Fontname','Arial','Interpreter','latex');
  title('Majority combiner','FontSize',12,'FontWeight','bold','Color','k','Fontname', 'Arial','Interpreter', 'latex')
+ grid on
  %ylim([0 1]);
  
  % Majority MD vs FA

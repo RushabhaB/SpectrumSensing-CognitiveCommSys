@@ -22,7 +22,7 @@ CW_State = randi([0,1], [1,nCodeword]); % Ground truth on whether channel is act
 
 L = nSamples; % Coherence interval
 iter =10^5; % Number of iterations 
-
+h_gain=1;
 for t = 1:length(fa) % Calculating threshold for each value of false alarm
  energy_fin = []; 
  N0=1; % Noise power
@@ -44,28 +44,17 @@ end
 for i = 1:length(CW_State)
 
 for t = 1:length(E_s)
-    s = [];  
-    h = [];
-    mes = randi([0 1],nSU,L); % Generating 0 and 1 with equal probability for BPSK
-    n =sqrt(N0)*randn(nSU,L); % Gaussian noise, mean 0, variance N0
-    s = (2.*(mes)-1); % BPSK modulation
-    h1 = (randn(nSU,1)+1i*randn(nSU,1))./(sqrt(2)); % Generating Rayleigh channel coefficients
-    h = repmat(h1,1,L); % Channel is constant over coherence interval
+    mec = randsrc(nSU,L,[-1,1;0.5,0.5]);
+    n =sqrt(N0./2)'.*(randn(nSU,L)+1i*randn(nSU,L)); % Gaussian noise, mean 0, variance 1
+    h1 = (h_gain)*(randn(nSU,1)+1i*randn(nSU,1))./(sqrt(2)); % Generating Rayleigh channel coefficients
+    h = repmat(h1,1,L); % Slow-fading
     if (CW_State(i) ==1)
-        y = sqrt(E_s(t)).*abs(h).*s + n; % Received signal y at the SU if channel is active, abs(h) is the Rayleigh channel gain.
+        y = sqrt(E_s(t)).*h.*mec + n; % Received signal y at the secondary user, abs(h) is the Rayleigh channel gain.
     else
-        y = n;  % Received signal y is only noise isf channel is idle
+        y = n;
     end
-    energy = (abs(y).^2);  % Received energy 
-    
-for k=1:nSU % Number of SUs
-    energy_fin_1(k,:) =sum(energy(k,:)); % Test Statistic for the energy detection 
-end
-
-    detect = ((energy_fin_1/L) >= th); % Checking whether the received energy is above the threshold
-    CW(i,:)=double(detect); % Convert all above threshold to 1 and below to 0
-    
-
+    energySU = mean(abs(y).^2,2);  % Received energy 
+    CW(:,i) = double(energySU >= th(t)); % Checking whether the received energy is above the threshold
 end
 end
 end

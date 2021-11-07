@@ -26,7 +26,7 @@ h_gain = 1;
 
 %System Config
 N0 = 10;  % Noise power
-nCodeWords = 1000; % Number of codewords per iteration
+nCodeWords = 10^4; % Number of codewords per iteration
 nSamples = 4 ; % Number of samples across which we assume the H_coeff to be constant
 m_p = ones([nSU 1]); % Pilot bits
 
@@ -38,7 +38,11 @@ fa = 0.05; % Desired local SU P_fa
 [th,CW_p] = MAP_est_Es_change(fa,N0,E_s,nSU); % Get threshold and probabliity map for each codeword
 
 
-iter = 5; %Number of MC simulations
+iter = 10; %Number of MC simulations
+
+% Initialising the modulated BPSK symbols for all codewords
+allCW = [1,1,1;1,1,0;1,0,1;1,0,0;0,1,1;0,1,0;0,0,1;0,0,0]'; 
+
 
 for r=1:iter
     r
@@ -59,14 +63,12 @@ p_md_MAP_mmse_arr = [];
 p_fa_MAP_mmse_arr = [];
 
 for k=1:length(E_s)
-[x,x_det] = stage1_ED_Es_change (nSU,nCodeWords,nSamples,E_s(k),fa); %Get ground truth for channel status and codewords at FC
-CW = x; % Actual status array
-
+[CW,CW_detSU] = stage1_ED_Es_change (nSU,nCodeWords,nSamples,E_s(k),fa); %Get ground truth for channel status and codewords at FC
+x_allCW = sqrt(E_s(k)).*exp(-1i*pi*2*(allCW)/M);
 %Initialise arrays for Ideal (Perfect CSI, MMSE and LS)
 CW_ideal = ones(size(CW));
 CW_LS = ones(size(CW));
 CW_mmse = ones(size(CW));
-CW_detSU = x_det'; % Codewords detected at SU 
 
 pilot_loc = 1:nSamples+1:nCodeWords ; % Location of pilot bits (every 5th bit as coherence interval is 5 samples)
 for i = 1:nSamples+1:nCodeWords
@@ -125,34 +127,43 @@ m_det_mmse = bpsk_demod(xb_det_mmse);
 
 %Reference Algorithm 1
 
+Ka_min=zeros(1,length(allCW));
+Ki_min=zeros(1,length(allCW));
+Ka_min_LS=zeros(1,length(allCW));
+Ki_min_LS=zeros(1,length(allCW));
+Ki_min_mmse=zeros(1,length(allCW));
+Ka_min_mmse=zeros(1,length(allCW));
+for q=1:length(allCW)
+    % Ideal Channel combiner
+    Ka_min(q) = sum(abs(Y_b-diag(x_allCW(:,q))*H(:,ceil(i/(nSamples+1)))).^2) - N0 *log(CW_p(1,q,k));
+    Ki_min(q)= sum(abs(Y_b-diag(x_allCW(:,q))*H(:,ceil(i/(nSamples+1)))).^2) - N0 *log(CW_p(2,q,k));
 
-Ka_min = min(sum(abs(Y_b-X_b*H(:,ceil(i/(nSamples+1)))).^2) - N0 *log(CW_p(k,1,:)));
-Ki_min= min(sum(abs(Y_b-X_b*H(:,ceil(i/(nSamples+1)))).^2) - N0 *log(CW_p(k,2,:)));
+    % LS channel combiner
+    Ka_min_LS(q) = sum(abs(Y_b-diag(x_allCW(:,q))*H_LS_p(:,ceil(i/(nSamples+1)))).^2) - N0 *log(CW_p(1,q,k));
+    Ki_min_LS(q) = sum(abs(Y_b-diag(x_allCW(:,q))*H_LS_p(:,ceil(i/(nSamples+1)))).^2) - N0 *log(CW_p(2,q,k));
 
-Ka_min_LS = min(sum(abs(Y_b-X_b*H_LS_p(:,ceil(i/(nSamples+1)))).^2) - N0 *log(CW_p(k,1,:)));
-Ki_min_LS = min(sum(abs(Y_b-X_b*H_LS_p(:,ceil(i/(nSamples+1)))).^2) - N0 *log(CW_p(k,2,:)));
+    % MMSE channel combiner
+    Ka_min_mmse(q) = sum(abs(Y_b-diag(x_allCW(:,q))*H_mmse_p(:,ceil(i/(nSamples+1)))).^2) - N0 *log(CW_p(1,q,k));
+    Ki_min_mmse(q) = sum(abs(Y_b-diag(x_allCW(:,q))*H_mmse_p(:,ceil(i/(nSamples+1)))).^2) - N0 *log(CW_p(2,q,k));
+end
 
-Ka_min_mmse = min(sum(abs(Y_b-X_b*H_mmse_p(:,ceil(i/(nSamples+1)))).^2) - N0 *log(CW_p(k,1,:)));
-Ki_min_mmse = min(sum(abs(Y_b-X_b*H_mmse_p(:,ceil(i/(nSamples+1)))).^2) - N0 *log(CW_p(k,2,:)));
-
-if (Ka_min < Ki_min)
+if (min(Ka_min) < min(Ki_min))
     CW_ideal(j) = 1;
 else
     CW_ideal(j) = 0;
 end
     
-if (Ka_min_LS < Ki_min_LS)
+if (min(Ka_min_LS) < min(Ki_min_LS))
     CW_LS(j) = 1;
 else
     CW_LS(j) = 0;
 end
 
-if (Ka_min_mmse < Ki_min_mmse)
+if (min(Ka_min_mmse) < min(Ki_min_mmse))
     CW_mmse(j) = 1;
 else
     CW_mmse(j) = 0;
 end
-%End MAP estimate
 
 %BER
 
@@ -223,23 +234,23 @@ p_fa_MAP_mmse_array(r,:) = p_fa_MAP_mmse_arr;
 end
 
 %Get mean across number of iterations
-p_md_ideal_final = mean(p_md_ideal_array);
-p_fa_ideal_final = mean(p_fa_ideal_array);
+p_md_ideal_final = mean(p_md_ideal_array,1);
+p_fa_ideal_final = mean(p_fa_ideal_array,1);
 
-p_md_LS_final = mean(p_md_LS_array);
-p_fa_LS_final = mean(p_fa_LS_array);
+p_md_LS_final = mean(p_md_LS_array,1);
+p_fa_LS_final = mean(p_fa_LS_array,1);
 
-p_md_mmse_final = mean(p_md_LS_array);
-p_fa_mmse_final = mean(p_fa_LS_array);
+p_md_mmse_final = mean(p_md_LS_array,1);
+p_fa_mmse_final = mean(p_fa_LS_array,1);
 
-p_md_MAP_ideal_final = mean(p_md_MAP_ideal_array);
-p_fa_MAP_ideal_final = mean(p_fa_MAP_ideal_array);
+p_md_MAP_ideal_final = mean(p_md_MAP_ideal_array,1);
+p_fa_MAP_ideal_final = mean(p_fa_MAP_ideal_array,1);
 
-p_md_MAP_LS_final = mean(p_md_MAP_LS_array);
-p_fa_MAP_LS_final = mean(p_fa_MAP_LS_array);
+p_md_MAP_LS_final = mean(p_md_MAP_LS_array,1);
+p_fa_MAP_LS_final = mean(p_fa_MAP_LS_array,1);
 
-p_md_MAP_mmse_final = mean(p_md_MAP_mmse_array);
-p_fa_MAP_mmse_final = mean(p_fa_MAP_mmse_array);
+p_md_MAP_mmse_final = mean(p_md_MAP_mmse_array,1);
+p_fa_MAP_mmse_final = mean(p_fa_MAP_mmse_array,1);
 
 
 %Plot the figures 
@@ -254,7 +265,7 @@ p_fa_MAP_mmse_final = mean(p_fa_MAP_mmse_array);
  xlabel('$P/N_0$ (dB)','FontSize',12,'FontWeight','bold','Color','k','Fontname', 'Arial','Interpreter', 'latex')
  ylabel('Probablity of misdetection ($P_{md}$)','FontSize',12,'FontWeight','bold','Color','k','Fontname', 'Arial','Interpreter', 'latex')
  legend('Majority Combiner', 'MAP Combiner','Location','northeast','FontSize',10,'Fontname','Arial','Interpreter','latex');
-
+ grid on 
  %MAP LS vs MMSE P_d
  figure(2)
  grid on
@@ -267,7 +278,7 @@ p_fa_MAP_mmse_final = mean(p_fa_MAP_mmse_array);
  ylabel('Probablity of detection ($P_d$)','FontSize',12,'FontWeight','bold','Color','k','Fontname', 'Arial','Interpreter', 'latex')
  legend('LS Estimate', 'MMSE Estimate','Ideal','Location','northwest','FontSize',10,'Fontname','Arial','Interpreter','latex');
  title('MAP combiner','FontSize',12,'FontWeight','bold','Color','k','Fontname', 'Arial','Interpreter', 'latex')
-
+ grid on 
   %Majority LS vs MMSE P_fa
  figure(3)
  grid on
@@ -280,7 +291,7 @@ p_fa_MAP_mmse_final = mean(p_fa_MAP_mmse_array);
  ylabel('Probablity of false alarm ($P_{fa}$)','FontSize',12,'FontWeight','bold','Color','k','Fontname', 'Arial','Interpreter', 'latex')
  legend('LS Estimate', 'MMSE Estimate','Ideal','Location','northwest','FontSize',10,'Fontname','Arial','Interpreter','latex');
  title('Majority combiner','FontSize',12,'FontWeight','bold','Color','k','Fontname', 'Arial','Interpreter', 'latex')
-  
+ grid on 
  %Majority LS vs MMSE P_d
  figure(4)
  grid on
@@ -294,5 +305,5 @@ p_fa_MAP_mmse_final = mean(p_fa_MAP_mmse_array);
  ylabel('Probablity of detection ($P_d$)','FontSize',12,'FontWeight','bold','Color','k','Fontname', 'Arial','Interpreter', 'latex')
  legend('LS Estimate', 'MMSE Estimate','Ideal','Location','southeast','FontSize',10,'Fontname','Arial','Interpreter','latex');
  title('Majority combiner','FontSize',12,'FontWeight','bold','Color','k','Fontname', 'Arial','Interpreter', 'latex')
-
+ grid on 
  
