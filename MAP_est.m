@@ -20,7 +20,7 @@ for i = 1:length(th)
 
 for j=1:3
 a= sqrt(th(i))/(sqrt(N0(j)/2)*(1+sqrt(gamma(j)))) ;
-Pd(j) = gammainc(1,a,'upper');
+Pd(j) = gammainc(1,a,'lower');
 Pmd(j)=1-Pd(j);
 Pfa(j) = 2*qfunc(sqrt(th(i)/N0(j)));
 Paf(j) = 1-Pfa(j);

@@ -32,18 +32,18 @@ M = 2;                            % BPSK modulation
 E_s = 100;           % Symbol Energy
 E_p = [100,100,100]; 
 N0_p = E_s*[10^(-13/10),10^(-15/10),10^(-17/10)]; % Noise power
-N0 = 10;             % Noise power
+N0 = 5;             % Noise power
 h_gain = 1;         % Average channel power gain
-nCodeWords = 1000;   % Number of CodeWords
-nSamples = 4 ;       % Number of samples across which we assume the H_coeff to be constant
+nCodeWords = 10^5;   % Number of CodeWords
+nSamples = 4;       % Number of samples across which we assume the H_coeff to be constant
 m_p = ones([nSU 1]); % Pilot bits
-th = linspace(10e-04,50,30); % Local Pfa vector based on th given in the paper
+th = linspace(10e-04,10,30); % Local Pfa vector based on th given in the paper
 % Generating the threshold vector based on Pfa and the proability map of
 % the MAP scheme based on nSUs 
 [th,CW_p] = MAP_est(th,N0_p,E_s,h_gain,nSU);
 
 % Number of iterations the entire process runs to average out the results
-iter = 5; % 5 for quick testing of the main but we ran it for 5000 iter
+iter = 100; % 5 for quick testing of the main but we ran it for 5000 iter
 
 % Initialising the modulated BPSK symbols for all codewords
 allCW = [1,1,1;1,1,0;1,0,1;1,0,0;0,1,1;0,1,0;0,0,1;0,0,0]'; 
@@ -264,23 +264,23 @@ p_fa_MAP_mmse_array(r,:) = p_fa_MAP_mmse_arr;
 end
 
 % Taking the mean value across all the iterations
-p_md_ideal_final = mean(p_md_ideal_array);
-p_fa_ideal_final = mean(p_fa_ideal_array);
+p_md_ideal_final = mean(p_md_ideal_array,1);
+p_fa_ideal_final = mean(p_fa_ideal_array,1);
 
-p_md_LS_final = mean(p_md_LS_array);
-p_fa_LS_final = mean(p_fa_LS_array);
+p_md_LS_final = mean(p_md_LS_array,1);
+p_fa_LS_final = mean(p_fa_LS_array,1);
 
-p_md_mmse_final = mean(p_md_LS_array);
-p_fa_mmse_final = mean(p_fa_LS_array);
+p_md_mmse_final = mean(p_md_LS_array,1);
+p_fa_mmse_final = mean(p_fa_LS_array,1);
 
-p_md_MAP_ideal_final = mean(p_md_MAP_ideal_array);
-p_fa_MAP_ideal_final = mean(p_fa_MAP_ideal_array);
+p_md_MAP_ideal_final = mean(p_md_MAP_ideal_array,1);
+p_fa_MAP_ideal_final = mean(p_fa_MAP_ideal_array,1);
 
-p_md_MAP_LS_final = mean(p_md_MAP_LS_array);
-p_fa_MAP_LS_final = mean(p_fa_MAP_LS_array);
+p_md_MAP_LS_final = mean(p_md_MAP_LS_array,1);
+p_fa_MAP_LS_final = mean(p_fa_MAP_LS_array,1);
 
-p_md_MAP_mmse_final = mean(p_md_MAP_mmse_array);
-p_fa_MAP_mmse_final = mean(p_fa_MAP_mmse_array);
+p_md_MAP_mmse_final = mean(p_md_MAP_mmse_array,1);
+p_fa_MAP_mmse_final = mean(p_fa_MAP_mmse_array,1);
 
 % PLOTTING FIGURES
 
@@ -294,7 +294,7 @@ p_fa_MAP_mmse_final = mean(p_fa_MAP_mmse_array);
  xlabel('Threshold(W)','FontSize',12,'FontWeight','bold','Color','k','Fontname', 'Arial','Interpreter', 'latex')
  ylabel('Probablity of detection ($P_d$)','FontSize',12,'FontWeight','bold','Color','k','Fontname', 'Arial','Interpreter', 'latex')
  legend('Majority Combiner', 'MAP Combiner','Location','southwest','FontSize',10,'Fontname','Arial','Interpreter','latex');
-% ylim([0 1]);
+ ylim([0 1]);
  
  %MAP LS vs MMSE P_d
  figure(2)

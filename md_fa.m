@@ -25,8 +25,8 @@ c = a-b;
 md_count = sum(c==1); % Actual is active (1) but estimated is idle (0)
 fa_count = sum(c==-1); % Actual is idle (0) but estimated is active (1)
 
-p_md = md_count/(actual_data_len);
-p_fa = fa_count/(actual_data_len);
+p_md = md_count/(sum(CW==1));
+p_fa = fa_count/(sum(CW==0));
 
 end
 
